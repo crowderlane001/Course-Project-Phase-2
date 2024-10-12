@@ -1,14 +1,14 @@
-import { fetchContributorActivity, fetchRepoData, checkFolderExists, getReadmeDetails } from "../src/api/githubApi";
-import { getRepoDetails, extractDomainFromUrl, extractNpmPackageName, extractGithubOwnerAndRepo } from '../src/utils/urlHandler';
-import { calcBusFactorScore, calcCorrectnessScore, calcResponsivenessScore, calcLicenseScore, calculateMetrics, calcBusFactor, calcCorrectness, calcResponsiveness, calcLicense, calcRampUp } from "../src/metricCalcs";
-import { initLogFile, logToFile, metricsLogToStdout } from "../src/utils/log";
+import { fetchContributorActivity, fetchRepoData, checkFolderExists, getReadmeDetails } from "../code/api/githubApi";
+import { getRepoDetails, extractDomainFromUrl, extractNpmPackageName, extractGithubOwnerAndRepo } from '../code/utils/urlHandler';
+import { calcBusFactorScore, calcCorrectnessScore, calcResponsivenessScore, calcLicenseScore, calculateMetrics, calcBusFactor, calcCorrectness, calcResponsiveness, calcLicense, calcRampUp } from "../code/metricCalcs";
+import { initLogFile, logToFile, metricsLogToStdout } from "../code/utils/log";
 import * as path from 'path';
-import { runWorker } from '../src/index';
-import { apiGetRequest, apiPostRequest } from '../src/api/apiUtils'
-import { ContributorResponse, ApiResponse, GraphQLResponse } from '../src/types';
-import { writeFile, hasLicenseHeading } from '../src/utils/utils';
-import { fetchGithubUrlFromNpm } from '../src/api/npmApi';
-import { getRepoDataQuery } from '../src/api/graphqlQueries';
+import { runWorker } from '../code/index';
+import { apiGetRequest, apiPostRequest } from '../code/api/apiUtils'
+import { ContributorResponse, ApiResponse, GraphQLResponse } from '../code/types';
+import { writeFile, hasLicenseHeading } from '../code/utils/utils';
+import { fetchGithubUrlFromNpm } from '../code/api/npmApi';
+import { getRepoDataQuery } from '../code/api/graphqlQueries';
 
 
 describe('Test suite', () => {

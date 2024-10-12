@@ -18,7 +18,7 @@ import { init } from 'isomorphic-git';
 export function runWorker(owner: string, repo: string, token: string, repoURL: string, repoData: ApiResponse<GraphQLResponse | null>, metric: string): Promise<WorkerResult> {
     return new Promise((resolve, reject) => {
         // PATH TO WORKER SCRIPT
-        const worker = new Worker('./src/utils/worker.ts');
+        const worker = new Worker('./code/utils/worker.ts');
         
         // SEND DATA TO WORKER AND START THE WORKER
         worker.postMessage({owner, repo, token, repoURL, repoData, metric});

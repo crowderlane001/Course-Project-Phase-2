@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { initLogFile, logToFile } from '../src/utils/log.js';
+import { initLogFile, logToFile } from '../code/utils/log.js';
 
 try {
   initLogFile();
