@@ -29,5 +29,6 @@ node_modules
 *.js
 !run.js
 *.json
+!package.json
 *.txt
 repos/
