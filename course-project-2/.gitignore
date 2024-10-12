@@ -22,3 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+#previous team
+node_modules
+.env
+*.js
+!run.js
+*.json
+*.txt
+repos/
