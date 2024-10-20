@@ -247,24 +247,24 @@ export async function calcPinnedDependencies(owner: string, repo: string, token:
 
 export async function calcReviewedCode (repoData: ApiResponse<GraphQLResponse | null>): Promise<number> {
     const pullRequests = repoData.data?.data.repository.pullRequests.nodes || [];
-    // console.log(pullRequests)
     
     let totalPRs = 0;
     let reviewedPRs = 0;
 
     for (const pr of pullRequests) {
         totalPRs++;
+        console.log(pr.reviews?.totalCount);
         if (pr.reviews?.totalCount > 0) {
             reviewedPRs++;
         }
     }
 
     if (totalPRs === 0) {
-        // logToFile(`Error: No pull requests found in`, 1);
+        logToFile(`Error: No pull requests found in`, 1);
         return 1.0; // No PRs, return full score
     }
 
-    // console.log(`Reviewed PRs: ${reviewedPRs}, Total PRs: ${totalPRs}`);
+    console.log(`Reviewed PRs: ${reviewedPRs}, Total PRs: ${totalPRs}`);
     return reviewedPRs / totalPRs;
 };
 
@@ -289,7 +289,6 @@ export async function calculateMetrics(owner: string, repo: string, token: strin
     let pinnedDeps = results[5].score;
     let reviewedCode = results[6].score;
 
-
     // calculate net score
     const begin = Date.now();
     const netScore = (busFactor*0.12) + (correctness*0.12) + (rampUp*0.12) + (responsiveness*0.3) + (license*0.12) + (pinnedDeps*0.12) + (reviewedCode*0.12);
@@ -298,7 +297,7 @@ export async function calculateMetrics(owner: string, repo: string, token: strin
     const metrics: Metrics = {
         URL: inputURL,
         NetScore: netScore,
-        NetScore_Latency: (Date.now() - begin) / 1000,
+        NetScore_Latency: (end - begin) / 1000,
         RampUp: rampUp,
         RampUp_Latency: results[2].latency,
         Correctness: correctness,

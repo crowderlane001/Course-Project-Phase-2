@@ -25,7 +25,7 @@ parentPort?.on('message', async (params) => {
         result = await calcLicense(owner, repo, repoURL);
     } else if (metric == "pinnedDeps") { // license
         result = await calcPinnedDependencies(owner, repo, repoURL);
-    } else if (metric == "license") { // license
+    } else if (metric == "reviewedCode") { // license
         result = await calcReviewedCode(repoData);
     }
 
