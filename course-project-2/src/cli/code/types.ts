@@ -98,6 +98,10 @@ export interface Metrics {
     ResponsiveMaintainer_Latency: number | null;
     License: number | null;
     License_Latency: number | null;
+    PinnedDependencies: number | null;
+    PinnedDependencies_Latency: number | null;
+    ReviewedCode: number | null;
+    ReviewedCode_Latency: number | null;
 }
 
 export interface WorkerResult {
