@@ -1,6 +1,6 @@
 const { parentPort } = require('worker_threads');
 const { logToFile } = require('./log');
-const { calcBusFactor, calcCorrectness, calcResponsiveness, calcLicense, calcRampUp } = require('../metricCalcs');
+const { calcBusFactor, calcCorrectness, calcResponsiveness, calcLicense, calcRampUp, calcPinnedDependencies, calcReviewedCode } = require('../metricCalcs');
 
 
 // Worker function that computes something
@@ -21,8 +21,12 @@ parentPort?.on('message', async (params) => {
         result = await calcRampUp(repoData);
     } else if (metric == "responsiveness") {
         result = calcResponsiveness(repoData);
-    } else { // license
+    } else if (metric == "license") { // license
         result = await calcLicense(owner, repo, repoURL);
+    } else if (metric == "pinnedDeps") { // license
+        result = await calcPinnedDependencies(owner, repo, repoURL);
+    } else if (metric == "reviewedCode") { // license
+        result = await calcReviewedCode(repoData);
     }
 
     const end = Date.now();

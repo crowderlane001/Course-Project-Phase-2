@@ -9,6 +9,7 @@ import { runWorker } from './index';
 import { Metrics, WorkerResult } from './types'
 import * as path from 'path';
 import { logToFile } from './utils/log';
+import { log } from 'console';
 
 
 export const calcBusFactorScore = (contributorActivity: ContributorResponse[]): number => {
@@ -185,225 +186,112 @@ export async function calcLicense(owner: string, repo: string, repoURL: string):
 }
 
 export async function calcRampUp(repoData: ApiResponse<GraphQLResponse | null>): Promise<number> {
-    const READMEMD = repoData.data?.data.repository.READMEMD;
-    const READMENOEXT = repoData.data?.data.repository.READMENOEXT;
-    const READMETXT = repoData.data?.data.repository.READMETXT;
-    const READMERDOC = repoData.data?.data.repository.READMERDOC;
-    const READMEHTML = repoData.data?.data.repository.READMEHTML;
-    const READMEADOC = repoData.data?.data.repository.READMEADOC;
-    const READMEMARKDOWN = repoData.data?.data.repository.READMEMARKDOWN;
-    const READMEYAML = repoData.data?.data.repository.READMEYAML;
-    const READMERST = repoData.data?.data.repository.READMERST;
-    const READMETEXTILE = repoData.data?.data.repository.READMETEXTILE;
-    const readmemd = repoData.data?.data.repository.readmemd;
-    const readmenoext = repoData.data?.data.repository.readmenoext;
-    const readmetxt = repoData.data?.data.repository.readmetxt;
-    const readmerdoc = repoData.data?.data.repository.readmerdoc;
-    const readmehtml = repoData.data?.data.repository.readmehtml;
-    const readmeadoc = repoData.data?.data.repository.readmeadoc;
-    const readmemarkdown = repoData.data?.data.repository.readmemarkdown;
-    const readmeyaml = repoData.data?.data.repository.readmeyaml;
-    const readmerst = repoData.data?.data.repository.readmerst;
-    const readmetextile = repoData.data?.data.repository.readmetextile;
-    const readMemd = repoData.data?.data.repository.readMemd;
-    const readMenoext = repoData.data?.data.repository.readMenoext;
-    const readMetxt = repoData.data?.data.repository.readMetxt;
-    const readMerdoc = repoData.data?.data.repository.readMerdoc;
-    const readMehtml = repoData.data?.data.repository.readMehtml;
-    const readMeadoc = repoData.data?.data.repository.readMeadoc;
-    const readMemarkdown = repoData.data?.data.repository.readMemarkdown;
-    const readMeyaml = repoData.data?.data.repository.readMeyaml;
-    const readMerst = repoData.data?.data.repository.readMerst;
-    const readMetextile = repoData.data?.data.repository.readMetextile;
-    const ReadMemd = repoData.data?.data.repository.ReadMemd;
-    const ReadMenoext = repoData.data?.data.repository.ReadMenoext;
-    const ReadMetxt = repoData.data?.data.repository.ReadMetxt;
-    const ReadMerdoc = repoData.data?.data.repository.ReadMerdoc;
-    const ReadMehtml = repoData.data?.data.repository.ReadMehtml;
-    const ReadMeadoc = repoData.data?.data.repository.ReadMeadoc;
-    const ReadMemarkdown = repoData.data?.data.repository.ReadMemarkdown;
-    const ReadMeyaml = repoData.data?.data.repository.ReadMeyaml;
-    const ReadMerst = repoData.data?.data.repository.ReadMerst;
-    const ReadMetextile = repoData.data?.data.repository.ReadMetextile;
-    const Readmemd = repoData.data?.data.repository.Readmemd;
-    const Readmenoext = repoData.data?.data.repository.Readmenoext;
-    const Readmetxt = repoData.data?.data.repository.Readmetxt;
-    const Readmerdoc = repoData.data?.data.repository.Readmerdoc;
-    const Readmehtml = repoData.data?.data.repository.Readmehtml;
-    const Readmeadoc = repoData.data?.data.repository.Readmeadoc;
-    const Readmemarkdown = repoData.data?.data.repository.Readmemarkdown;
-    const Readmeyaml = repoData.data?.data.repository.Readmeyaml;
-    const Readmerst = repoData.data?.data.repository.Readmerst;
-    const Readmetextile = repoData.data?.data.repository.Readmetextile;
+    const readmeKeys = [
+        'READMEMD', 'READMENOEXT', 'READMETXT', 'READMERDOC', 'READMEHTML', 'READMEADOC', 
+        'READMEMARKDOWN', 'READMEYAML', 'READMERST', 'READMETEXTILE', 'readmemd', 
+        'readmenoext', 'readmetxt', 'readmerdoc', 'readmehtml', 'readmeadoc', 
+        'readmemarkdown', 'readmeyaml', 'readmerst', 'readmetextile', 'readMemd', 
+        'readMenoext', 'readMetxt', 'readMerdoc', 'readMehtml', 'readMeadoc', 
+        'readMemarkdown', 'readMeyaml', 'readMerst', 'readMetextile', 'ReadMemd', 
+        'ReadMenoext', 'ReadMetxt', 'ReadMerdoc', 'ReadMehtml', 'ReadMeadoc', 
+        'ReadMemarkdown', 'ReadMeyaml', 'ReadMerst', 'ReadMetextile', 'Readmemd', 
+        'Readmenoext', 'Readmetxt', 'Readmerdoc', 'Readmehtml', 'Readmeadoc', 
+        'Readmemarkdown', 'Readmeyaml', 'Readmerst', 'Readmetextile'
+    ];
 
+    const examplesKeys = ['examplesFolder', 'exampleFolder', 'ExamplesFolder', 'ExampleFolder'];
 
-    const examplesFolder = repoData.data?.data.repository.examplesFolder;
-    const exampleFolder = repoData.data?.data.repository.exampleFolder;
-    const ExamplesFolder = repoData.data?.data.repository.ExamplesFolder;
-    const ExampleFolder = repoData.data?.data.repository.ExampleFolder;
-    await writeFile(repoData, "repoData.json");
-    
-    // Readme
-    let readMe = null;
-    if(READMEMD?.text) {
-        readMe = READMEMD;
-    } else if(READMENOEXT?.text) {
-        readMe = READMENOEXT;
-    } else if(READMETXT?.text) {
-        readMe = READMETXT;
-    } else if(READMERDOC?.text) {
-        readMe = READMERDOC;
-    } else if(READMEHTML?.text) {
-        readMe = READMEHTML;
-    } else if(READMEADOC?.text) {
-        readMe = READMEADOC;
-    } else if(READMEMARKDOWN?.text) {
-        readMe = READMEMARKDOWN;
-    } else if(READMEYAML?.text) {
-        readMe = READMEYAML;
-    } else if(READMERST?.text) {
-        readMe = READMERST;
-    } else if(READMETEXTILE?.text) {
-        readMe = READMETEXTILE;
-    } else if(readmemd?.text) {
-        readMe = readmemd;
-    } else if(readmenoext?.text) {
-        readMe = readmenoext;
-    } else if(readmetxt?.text) {
-        readMe = readmetxt;
-    } else if(readmerdoc?.text) {
-        readMe = readmerdoc;
-    } else if(readmehtml?.text) {
-        readMe = readmehtml;
-    } else if(readmeadoc?.text) {
-        readMe = readmeadoc;
-    } else if(readmemarkdown?.text) {
-        readMe = readmemarkdown;
-    } else if(readmeyaml?.text) {
-        readMe = readmeyaml;
-    } else if(readmerst?.text) {
-        readMe = readmerst;
-    } else if(readmetextile?.text) {
-        readMe = readmetextile;
-    } else if(readMemd?.text) {
-        readMe = readMemd;
-    } else if(readMenoext?.text) {
-        readMe = readMenoext;
-    } else if(readMetxt?.text) {
-        readMe = readMetxt;
-    } else if(readMerdoc?.text) {
-        readMe = readMerdoc;
-    } else if(readMehtml?.text) {
-        readMe = readMehtml;
-    } else if(readMeadoc?.text) {
-        readMe = readMeadoc;
-    } else if(readMemarkdown?.text) {
-        readMe = readMemarkdown;
-    } else if(readMeyaml?.text) {
-        readMe = readMeyaml;
-    } else if(readMerst?.text) {
-        readMe = readMerst;
-    } else if(readMetextile?.text) {
-        readMe = readMetextile;
-    } else if(ReadMemd?.text) {
-        readMe = ReadMemd;
-    } else if(ReadMenoext?.text) {
-        readMe = ReadMenoext;
-    } else if(ReadMetxt?.text) {
-        readMe = ReadMetxt;
-    } else if(ReadMerdoc?.text) {
-        readMe = ReadMerdoc;
-    } else if(ReadMehtml?.text) {
-        readMe = ReadMehtml;
-    } else if(ReadMeadoc?.text) {
-        readMe = ReadMeadoc;
-    } else if(ReadMemarkdown?.text) {
-        readMe = ReadMemarkdown;
-    } else if(ReadMeyaml?.text) {
-        readMe = ReadMeyaml;
-    } else if(ReadMerst?.text) {
-        readMe = ReadMerst;
-    } else if(ReadMetextile?.text) {
-        readMe = ReadMetextile;
-    } else if(Readmemd?.text) {
-        readMe = Readmemd;
-    } else if(Readmenoext?.text) {
-        readMe = Readmenoext;
-    } else if(Readmetxt?.text) {
-        readMe = Readmetxt;
-    } else if(Readmerdoc?.text) {
-        readMe = Readmerdoc;
-    } else if(Readmehtml?.text) {
-        readMe = Readmehtml;
-    } else if(Readmeadoc?.text) {
-        readMe = Readmeadoc;
-    } else if(Readmemarkdown?.text) {
-        readMe = Readmemarkdown;
-    } else if(Readmeyaml?.text) {
-        readMe = Readmeyaml;
-    } else if(Readmerst?.text) {
-        readMe = Readmerst;
-    } else if(Readmetextile?.text) {
-        readMe = Readmetextile;
-    }
+    const repository = repoData.data?.data.repository;
 
-    let exFolder = null;
-    if(examplesFolder != null) {
-        exFolder = examplesFolder;
-    } else if(exampleFolder != null) {
-        exFolder = exampleFolder;
-    } else if(ExamplesFolder != null) {
-        exFolder = ExamplesFolder;
-    } else if(ExampleFolder != null) {
-        exFolder = ExampleFolder;
-    }
+    // Find the README content
+    let readMe = readmeKeys.map(key => repository?.[key]).find(readme => readme?.text);
 
-    let rampUp = null;
-    if(!readMe?.text) {
-        rampUp = 0.9;
-    } else {
-        rampUp = await getReadmeDetails(readMe.text, exFolder);
-    }
+    // Find the examples folder
+    let exFolder = examplesKeys.map(key => repository?.[key]).find(folder => folder != null);
+
+    // Set rampUp value
+    let rampUp = readMe?.text ? await getReadmeDetails(readMe.text, exFolder) : 0.9;
 
     return rampUp;
 }
 
+export async function calcPinnedDependencies(owner: string, repo: string, token: string): Promise<number> {
+    const packageJsonPath = path.join("./repos", `${owner}_${repo}`, 'package.json');
+
+    if (!fs.existsSync(packageJsonPath)) {
+        logToFile(`Error: package.json not found for ${owner}/${repo}`, 1);
+        return 1.0; // No dependencies, so return 1.0
+    }
+
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+    const dependencies = { ...packageJson.dependencies, ...packageJson.devDependencies };
+
+    const totalDependencies = Object.keys(dependencies).length;
+    if (totalDependencies === 0) {
+        logToFile(`Error: No dependencies found in ${owner}/${repo} package.json`, 1);
+        return 1.0;
+    }
+
+    let pinnedCount = 0;
+    for (const dep in dependencies) {
+        const version = dependencies[dep];
+        const majorMinorPattern = /^\d+\.\d+/; // Matches major.minor version (e.g., 2.3.X)
+        if (majorMinorPattern.test(version)) {
+            pinnedCount++;
+        }
+    }
+
+    return pinnedCount / totalDependencies;
+};
+
+
+export async function calcReviewedCode (repoData: ApiResponse<GraphQLResponse | null>): Promise<number> {
+    const pullRequests = repoData.data?.data.repository.pullRequests.nodes || [];
+    
+    let totalPRs = 0;
+    let reviewedPRs = 0;
+
+    for (const pr of pullRequests) {
+        totalPRs++;
+        console.log(pr.reviews?.totalCount);
+        if (pr.reviews?.totalCount > 0) {
+            reviewedPRs++;
+        }
+    }
+
+    if (totalPRs === 0) {
+        logToFile(`Error: No pull requests found in`, 1);
+        return 1.0; // No PRs, return full score
+    }
+
+    console.log(`Reviewed PRs: ${reviewedPRs}, Total PRs: ${totalPRs}`);
+    return reviewedPRs / totalPRs;
+};
+
+
+// Modifying the calculateMetrics function to include the new metrics
 export async function calculateMetrics(owner: string, repo: string, token: string, repoURL: string, repoData: ApiResponse<GraphQLResponse | null>, inputURL: string): Promise<Metrics | null> {
-    // concurrently calculate metrics
     const busFactorWorker = runWorker(owner, repo, token, repoURL, repoData, "busFactor");
     const correctnessWorker = runWorker(owner, repo, token, repoURL, repoData, "correctness");
     const rampUpWorker = runWorker(owner, repo, token, repoURL, repoData, "rampUp");
     const responsivenessWorker = runWorker(owner, repo, token, repoURL, repoData, "responsiveness");
     const licenseWorker = runWorker(owner, repo, token, repoURL, repoData, "license");
+    const pinnedDepsWorker = runWorker(owner, repo, token, repoURL, repoData, "pinnedDeps");
+    const reviewedCodeWorker = runWorker(owner, repo, token, repoURL, repoData, "reviewedCode");
 
-    const results = await Promise.all([busFactorWorker, correctnessWorker, rampUpWorker, responsivenessWorker, licenseWorker]);
+    const results = await Promise.all([busFactorWorker, correctnessWorker, rampUpWorker, responsivenessWorker, licenseWorker, pinnedDepsWorker, reviewedCodeWorker]);
 
-    // parse metric scores and latencies
     let busFactor = results[0].score;
     let correctness = results[1].score;
     let rampUp = results[2].score;
     let responsiveness = results[3].score;
     let license = results[4].score;
-
-    let busFactorLatency = results[0].latency;
-    let correctnessLatency = results[1].latency;
-    let rampUpLatency = results[2].latency;
-    let responsivenessLatency = results[3].latency;
-    let licenseLatency = results[4].latency;
-
-    // verify calculations
-    if (correctness == -1) {
-        logToFile("Unable to calculate correctness", 1);
-        return null;
-    }
-    if (responsiveness == -1) {
-        logToFile("Unable to calculate responsiveness", 1);
-        return null;
-    }
+    let pinnedDeps = results[5].score;
+    let reviewedCode = results[6].score;
 
     // calculate net score
     const begin = Date.now();
-    const netScore = (busFactor*0.25) + (correctness*0.30) + (rampUp*0.20) + (responsiveness*0.15) + (license*0.10);
+    const netScore = (busFactor*0.12) + (correctness*0.12) + (rampUp*0.12) + (responsiveness*0.3) + (license*0.12) + (pinnedDeps*0.12) + (reviewedCode*0.12);
     const end = Date.now();
 
     const metrics: Metrics = {
@@ -411,15 +299,19 @@ export async function calculateMetrics(owner: string, repo: string, token: strin
         NetScore: netScore,
         NetScore_Latency: (end - begin) / 1000,
         RampUp: rampUp,
-        RampUp_Latency: rampUpLatency,
+        RampUp_Latency: results[2].latency,
         Correctness: correctness,
-        Correctness_Latency: correctnessLatency,
+        Correctness_Latency: results[1].latency,
         BusFactor: busFactor,
-        BusFactor_Latency: busFactorLatency,
+        BusFactor_Latency: results[0].latency,
         ResponsiveMaintainer: responsiveness,
-        ResponsiveMaintainer_Latency: responsivenessLatency,
+        ResponsiveMaintainer_Latency: results[3].latency,
         License: license,
-        License_Latency: licenseLatency
+        License_Latency: results[4].latency,
+        PinnedDependencies: pinnedDeps,  // New metric
+        PinnedDependencies_Latency: results[5].latency,
+        ReviewedCode: reviewedCode,       // New metric
+        ReviewedCode_Latency: results[6].latency
     };
 
     return metrics;
