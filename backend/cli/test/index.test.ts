@@ -1,6 +1,7 @@
-import { fetchContributorActivity, fetchRepoData, checkFolderExists, getReadmeDetails } from "../code/api/githubApi";
+import { fetchContributorActivity, fetchRepoData, checkFolderExists } from "../code/api/githubApi";
 import { getRepoDetails, extractDomainFromUrl, extractNpmPackageName, extractGithubOwnerAndRepo } from '../code/utils/urlHandler';
-import { calcBusFactorScore, calcCorrectnessScore, calcResponsivenessScore, calcLicenseScore, calculateMetrics, calcBusFactor, calcCorrectness, calcResponsiveness, calcLicense, calcRampUp } from "../code/metricCalcs";
+import { calcBusFactorScore, calcCorrectnessScore, calcResponsivenessScore, calcLicenseScore, calcBusFactor, calcCorrectness, calcResponsiveness, calcLicense, calcRampUp } from "../code/calculations/imports";
+import { calculateMetrics } from "../code/metricCalcs"
 import { initLogFile, logToFile, metricsLogToStdout } from "../code/utils/log";
 import * as path from 'path';
 import { runWorker } from '../code/index';

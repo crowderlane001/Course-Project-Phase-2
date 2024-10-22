@@ -4,7 +4,21 @@ const { calcBusFactor, calcCorrectness, calcResponsiveness, calcLicense, calcRam
 
 
 // Worker function that computes something
-parentPort?.on('message', async (params) => {
+interface WorkerParams {
+    owner: string;
+    repo: string;
+    token: string;
+    repoURL: string;
+    repoData: any;
+    metric: string;
+}
+
+interface WorkerResult {
+    score: any;
+    latency: number;
+}
+
+parentPort?.on('message', async (params: WorkerParams) => {
     const begin = Date.now();
 
     // PARSE PARAMETERS
@@ -12,7 +26,7 @@ parentPort?.on('message', async (params) => {
     logToFile(`Worker: ${owner}, ${repo}, ${repoURL}, ${metric}`, 2);
     
     // COMPUTE SOMETHING
-    let result;
+    let result: any;
     if (metric == "busFactor") {
         result = await calcBusFactor(owner, repo, token);
     } else if (metric == "correctness") {
@@ -31,8 +45,9 @@ parentPort?.on('message', async (params) => {
 
     const end = Date.now();
     // RETURN SOMETHING
-    parentPort?.postMessage({
+    const workerResult: WorkerResult = {
         score: result,
         latency: (end - begin) / 1000 // in seconds
-    });
+    };
+    parentPort?.postMessage(workerResult);
 });
