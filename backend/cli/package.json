@@ -1,6 +1,8 @@
 {
   "dependencies": {
     "@microsoft/eslint-formatter-sarif": "^2.1.7",
+    "@aws-sdk/client-s3": "^3.x.x",
+    "@aws-sdk/s3-request-presigner": "^3.x.x",
     "axios": "^1.7.7",
     "commander": "^12.1.0",
     "dotenv": "^16.4.5",
