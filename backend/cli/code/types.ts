@@ -53,6 +53,7 @@ export interface PullRequestNode {
     createdAt: string;
     updatedAt: string;
     closedAt: string | null;
+    reviews: number;
 }
 
 export interface PullRequests {
