@@ -41,7 +41,6 @@ jobs:
           npm install
           npm install zod@latest
           npm install typescript
-          tsc packages/create.ts
 
       - name: Compile TypeScript
         working-directory: backend/src/functions/packages
