@@ -34,12 +34,14 @@ jobs:
 
       - name: Install dependencies 
         working-directory: backend/src/functions
-        run: npm install
-
+        run: |
+          npm install
+          npm install typescript
+          
       - name: Compile TypeScript
         working-directory: backend/src/functions/packages
         run: |
-          npm install typescript
+          
           tsc create.ts
 
       - name: Create deployment package
