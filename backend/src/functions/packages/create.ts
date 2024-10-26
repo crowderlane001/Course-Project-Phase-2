@@ -85,7 +85,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         'X-Package-Id': packageId,
       },
       body: JSON.stringify({
-        message: 'Package created successfully',
+        message: 'Package created successfully lets gooo',
         data: {
           packageId,
           name: validatedData.name,
