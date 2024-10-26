@@ -28,7 +28,9 @@ node_modules
 .env
 *.js
 !run.js
+# Ignore all JSON files except package.json and TypeScript configs
 *.json
 !package.json
+!tsconfig*.json
 *.txt
 repos/
