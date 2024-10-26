@@ -1,39 +1,13 @@
 {
   "compilerOptions": {
-    /* Language and Environment */
-    "target": "es2016",                                  /* Updated to es2020 to support BigInt and other modern features */
-    "lib": ["es2016", "dom"],                           /* Added lib to include necessary type definitions */
-    
-    /* Modules */
-    "module": "commonjs",                                
-    "moduleResolution": "node",                         /* Added for proper module resolution */
-    "baseUrl": "./",                                    /* Base directory for module resolution */
-    "rootDir": "./",                                    /* Source root directory */
-    "outDir": "./dist",                                 /* Output directory for compiled files */
-    "resolveJsonModule": true,                          /* Enable importing JSON files */
-    
-    /* Type Checking and Interop */
-    "strict": true,                                     
-    "esModuleInterop": true,                            
-    "forceConsistentCasingInFileNames": true,           
-    "skipLibCheck": true,                               
-    "types": ["node"],                                  /* Added Node.js types */
-    
-    /* Additional Settings */
-    "allowJs": true,                                    /* Allow JavaScript files */
-    "declaration": true,                                /* Generate .d.ts files */
-    "sourceMap": true,                                  /* Generate source maps */
-    "noImplicitAny": true,                             /* Better type safety */
-    "paths": {
-      "*": ["node_modules/*"]                          /* Help resolve modules */
-    }
+    "target": "ES2015",
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist"
   },
-  "include": [
-    "*.ts",                                            /* Include all TypeScript files */
-    "**/*.ts"                                          /* Include TypeScript files in subdirectories */
-  ],
-  "exclude": [
-    "node_modules",                                    /* Exclude node_modules */
-    "dist"                                             /* Exclude output directory */
-  ]
+  "include": ["packages/**/*"],
+  "exclude": ["node_modules"]
 }
