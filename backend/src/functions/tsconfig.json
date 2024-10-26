@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     /* Language and Environment */
-    "target": "es2015",                                  /* Updated to es2020 to support BigInt and other modern features */
-    "lib": ["es2015", "dom"],                           /* Added lib to include necessary type definitions */
+    "target": "es2016",                                  /* Updated to es2020 to support BigInt and other modern features */
+    "lib": ["es2016", "dom"],                           /* Added lib to include necessary type definitions */
     
     /* Modules */
     "module": "commonjs",                                
