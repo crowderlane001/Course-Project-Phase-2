@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES6",                                
+    "target": "ES2017",                                
     "lib": ["dom"],
     "module": "commonjs",                               
     "moduleResolution": "node",
@@ -14,13 +14,11 @@
     "skipLibCheck": true,
     "types": ["node"],
     "allowJs": true,
-    "declaration": true,
-    "sourceMap": true,
     "noImplicitAny": true,
     "paths": {
       "*": ["node_modules/*"]
     }
   },
-  "include": ["packages/**/*.ts"],
+  "include": ["*.ts", "**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }
