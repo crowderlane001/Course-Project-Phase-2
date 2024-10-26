@@ -32,16 +32,20 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}  # Add this to your GitHub secrets
 
+      - name: Clear NPM Cache
+        run: npm cache clean --force
+
       - name: Install dependencies 
         working-directory: backend/src/functions
         run: |
           npm install
-          npm install typescript
+          npm install zod@latest
           
+
       - name: Compile TypeScript
         working-directory: backend/src/functions/packages
         run: |
-          
+          npm install typescript
           tsc create.ts
 
       - name: Create deployment package
