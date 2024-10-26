@@ -43,10 +43,9 @@ jobs:
           npm install typescript
           tsc packages/create.ts
 
-      # - name: Compile TypeScript
-      #   working-directory: backend/src/functions/packages
-      #   run: |
-      #     tsc create.ts
+      - name: Compile TypeScript
+        working-directory: backend/src/functions/packages
+        run: tsc
 
       - name: Create deployment package
         working-directory: backend/src/functions

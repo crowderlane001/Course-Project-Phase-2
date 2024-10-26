@@ -33,8 +33,6 @@ class PackageRegistryError extends Error {
   }
 }
 
-
-
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   let requestBody;
   try {
