@@ -83,7 +83,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         'X-Package-Id': packageId,
       },
       body: JSON.stringify({
-        message: 'Package created successfully lets gooo',
+        message: 'Package created successfully Completed',
         data: {
           packageId,
           name: validatedData.name,
@@ -136,3 +136,8 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     };
   }
 };
+
+// {
+//   "httpMethod": "POST",
+//   "body": "{\"name\": \"my-package\", \"version\": \"1.0.0\", \"description\": \"A test package\"}"
+// }

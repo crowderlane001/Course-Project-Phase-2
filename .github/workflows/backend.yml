@@ -44,7 +44,8 @@ jobs:
 
       - name: Compile TypeScript
         working-directory: backend/src/functions/packages
-        run: tsc
+        run: 
+          npx tsc
 
       - name: Create deployment package
         working-directory: backend/src/functions
