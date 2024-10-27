@@ -1,0 +1,20 @@
+name: Run Commands on Push
+
+on:
+  push:
+    branches:
+      - main  # Change this to your default branch name (e.g., 'master', 'develop')
+
+jobs:
+  run-commands:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Run install and urls.txt
+        run: |
+          cd backend/cli
+          ./run install
+          ./run urls.txt
