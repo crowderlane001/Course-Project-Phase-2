@@ -1,6 +1,6 @@
 import { fetchContributorActivity, fetchRepoData, checkFolderExists } from "../src/api/githubApi";
 import { getRepoDetails, extractDomainFromUrl, extractNpmPackageName, extractGithubOwnerAndRepo } from '../src/utils/urlHandler';
-import { calcBusFactorScore, calcCorrectnessScore, calcResponsivenessScore, calcLicenseScore, calcBusFactor, calcCorrectness, calcResponsiveness, calcLicense, calcRampUp } from "../src/calculations/imports";
+import { calcBusFactorScore, calcCorrectnessScore, calcResponsivenessScore, calcLicenseScore, calcBusFactor, calcCorrectness, calcResponsiveness, calcLicense, calcRampUp } from "../src/imports";
 import { calculateMetrics } from "../src/metricCalcs"
 import { initLogFile, logToFile, metricsLogToStdout } from "../src/utils/log";
 import * as path from 'path';

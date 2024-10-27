@@ -1,7 +1,6 @@
 const { parentPort } = require('worker_threads');
 const { logToFile } = require('./log');
-const { calcPinnedDependencies, calcReviewedCode } = require('../metricCalcs');
-const { calcBusFactor, calcCorrectness, calcResponsiveness, calcLicense, calcRampUp} = require('../calculations/imports');
+const { calcBusFactor, calcCorrectness, calcLicense, calcPinnedDependencies, calcRampUp, calcReviewedCode, calcResponsiveness} = require('../imports');
 
 
 // Worker function that computes something

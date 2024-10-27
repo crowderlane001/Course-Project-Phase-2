@@ -11,7 +11,6 @@ import { initLogFile, logToFile, metricsLogToStdout } from './utils/log';
 import { ApiResponse, GraphQLResponse } from './types';
 import { Worker } from 'worker_threads';
 import { calculateMetrics } from './metricCalcs';
-import { init } from 'isomorphic-git';
 
 
 // Function to create and manage worker threads
