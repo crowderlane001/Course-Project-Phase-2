@@ -22,22 +22,22 @@ export const calcLicenseScore = async (repoUrl: string, localDir: string): Promi
     const packageJsonPath = `${localDir}/package.json`;
 
     if (fs.existsSync(licenseFilePath)) {
-        return 1;
+        return 1.0;
     }
   
     if (fs.existsSync(packageJsonPath)) {
         const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
         if (packageJson.license) {
-            return 1;
+            return 1.0;
         }
     }
 
     if (fs.existsSync(readmeFilePath)) {
         const readmeText = fs.readFileSync(readmeFilePath, 'utf8');
-        return hasLicenseHeading(readmeText) ? 1 : 0;
+        return hasLicenseHeading(readmeText) ? 1.0 : 0;
     }
   
-    return 0;
+    return 0.0;
 };
 
 export async function calcLicense(owner: string, repo: string, repoURL: string): Promise<number> {
