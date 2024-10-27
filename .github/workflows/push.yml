@@ -17,4 +17,3 @@ jobs:
         run: |
           cd backend/cli
           ./run install
-          ./run urls.txt
