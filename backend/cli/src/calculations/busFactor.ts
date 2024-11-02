@@ -1,10 +1,10 @@
-import { ContributorResponse} from ".././types";
-import { fetchContributorActivity } from ".././api/githubApi";
+import { ContributorResponse} from "../types";
+import { fetchContributorActivity } from "../api/githubApi";
 
 
 export const calcBusFactorScore = (contributorActivity: ContributorResponse[]): number => {
     if (!contributorActivity) {
-        return 0;
+        return 0.0;
     }
 
     let totalCommits = 0;
@@ -32,18 +32,18 @@ export const calcBusFactorScore = (contributorActivity: ContributorResponse[]): 
     const averageBusFactor = 3;
     // if bus factor is 10+, thats more than enough
     if (busFactor > 9) {
-        return 1;
+        return 1.0;
     }
 
     // scale bus factor values using sigmoid function
-    return 1 - Math.exp(-(busFactor ** 2) / (2 * averageBusFactor ** 2));
+    return 1.0 - Math.exp(-(busFactor ** 2) / (2 * averageBusFactor ** 2));
 }
 
 export async function calcBusFactor(owner: string, repo: string, token: string): Promise<number> {
     let busFactor;
     const contributorActivity = await fetchContributorActivity(owner, repo, token);
     if (!contributorActivity?.data || !Array.isArray(contributorActivity.data)) {
-        busFactor = -1
+        busFactor = -1.0
     } else {
         busFactor = calcBusFactorScore(contributorActivity.data);
     }

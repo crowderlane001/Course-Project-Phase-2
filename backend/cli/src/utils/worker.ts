@@ -1,24 +1,10 @@
 const { parentPort } = require('worker_threads');
 const { logToFile } = require('./log');
-const { calcBusFactor, calcCorrectness, calcResponsiveness, calcLicense, calcRampUp, calcPinnedDependencies, calcReviewedCode } = require('../metricCalcs');
+const { calcBusFactor, calcCorrectness, calcLicense, calcPinnedDependencies, calcRampUp, calcReviewedCode, calcResponsiveness} = require('../imports');
 
 
 // Worker function that computes something
-interface WorkerParams {
-    owner: string;
-    repo: string;
-    token: string;
-    repoURL: string;
-    repoData: any;
-    metric: string;
-}
-
-interface WorkerResult {
-    score: any;
-    latency: number;
-}
-
-parentPort?.on('message', async (params: WorkerParams) => {
+parentPort?.on('message', async (params) => {
     const begin = Date.now();
 
     // PARSE PARAMETERS
@@ -26,7 +12,7 @@ parentPort?.on('message', async (params: WorkerParams) => {
     logToFile(`Worker: ${owner}, ${repo}, ${repoURL}, ${metric}`, 2);
     
     // COMPUTE SOMETHING
-    let result: any;
+    let result;
     if (metric == "busFactor") {
         result = await calcBusFactor(owner, repo, token);
     } else if (metric == "correctness") {
@@ -45,9 +31,8 @@ parentPort?.on('message', async (params: WorkerParams) => {
 
     const end = Date.now();
     // RETURN SOMETHING
-    const workerResult: WorkerResult = {
+    parentPort?.postMessage({
         score: result,
         latency: (end - begin) / 1000 // in seconds
-    };
-    parentPort?.postMessage(workerResult);
+    });
 });

@@ -26,7 +26,7 @@ program
     .command('install')
     .description('install all dependencies')
     .action(() => {
-        exec('npm install --save-dev && tsc --init', (error, stdout, stderr) => {
+        exec('npm install --save-dev && tsc', (error, stdout, stderr) => {
             if (error) {
                 console.error(`%cError installing dependencies: ${error}`, `color: red`);
                 console.error(`%cError installing dependencies: ${stderr}`, `color: red`);
@@ -48,12 +48,12 @@ program
     .description('process URL of the file to run and output metrics in NDJSON format')
     .action((file) => { 
         try {
-            execSync('tsc code/index.ts', { stdio: 'ignore' });
+            execSync('tsc src/index.ts', { stdio: 'ignore' });
         } catch(error) {
             // console.log('TSC file compiled successfully');
         }
         
-        const {main} =  require('./code/index');
+        const {main} =  require('./src/index');
         fs.readFile(file, 'utf8', (err, data) => {
             if (err) {
                 console.error(`%cError reading file: ${err}`, `color: red`);

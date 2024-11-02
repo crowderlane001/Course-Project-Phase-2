@@ -1,5 +1,5 @@
-import { ContributorResponse, ClosedIssueNode, PullRequestNode, OpenIssueNode } from ".././types";
-import { ApiResponse, GraphQLResponse } from '.././types';
+import { ContributorResponse, ClosedIssueNode, PullRequestNode, OpenIssueNode } from "../types";
+import { ApiResponse, GraphQLResponse } from '../types';
 
 export const calcResponsivenessScore = (
     closedIssues: ClosedIssueNode[], 
@@ -10,7 +10,7 @@ export const calcResponsivenessScore = (
 ): number => {
     if (isArchived) {
         // repo is no longer maintained
-        return 0;
+        return 0.0;
     }
 
     let openIssueCount = 0;
@@ -38,10 +38,10 @@ export const calcResponsivenessScore = (
 
     const issueCloseRatio = totalRecentIssues > 0 
         ? closedIssueCount / totalRecentIssues 
-        : 0;
+        : 0.0;
     const prCloseRatio = totalRecentPRs > 0 
         ? closedPRCount / totalRecentPRs 
-        : 0;
+        : 0.0;
     
     return 0.5 * issueCloseRatio + 0.5 * prCloseRatio
 };
@@ -55,7 +55,7 @@ export function calcResponsiveness(repoData: ApiResponse<GraphQLResponse | null>
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
     if (!recentPullRequests?.nodes || !totalClosedIssues?.nodes || !totalOpenIssues?.nodes) {
-        return -1;
+        return -1.0;
     }
     const responsiveness = calcResponsivenessScore(totalClosedIssues.nodes, totalOpenIssues.nodes, recentPullRequests.nodes, oneMonthAgo, isArchived ?? false);
 
