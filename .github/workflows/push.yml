@@ -24,8 +24,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-
-        if [ -f backend/tester_cli/requirements.txt ]; then pip install -r backend/tester_cli/requirements.txt; fi
+        pip install -r backend/tester_cli/requirements.txt
 
     - name: Create .env file from GitHub Secrets
       run: |
