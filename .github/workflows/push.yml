@@ -39,5 +39,4 @@ jobs:
       env:
         ENV_FILE: .env
       run: |
-        cd backend/tester_cli
-        python3 checker.py  # Replace with your Python script name
+        python3 backend/tester_cli/checker.py  # Replace with your Python script name
