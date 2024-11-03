@@ -1,15 +1,6 @@
-import { clone, checkout } from 'isomorphic-git';
-import * as fs from 'fs';
-import http from 'isomorphic-git/http/node';
-import { ContributorResponse, ClosedIssueNode, PullRequestNode, OpenIssueNode } from "./types";
-import { hasLicenseHeading, writeFile } from "./utils/utils";
-import { fetchContributorActivity, fetchRepoData, getReadmeDetails, checkFolderExists } from "./api/githubApi";
 import { ApiResponse, GraphQLResponse } from './types';
 import { runWorker } from './index';
 import { Metrics, WorkerResult } from './types'
-import * as path from 'path';
-import { logToFile } from './utils/log';
-import { log } from 'console';
 
 
 // Modifying the calculateMetrics function to include the new metrics

@@ -44,35 +44,35 @@ export function runWorker(owner: string, repo: string, token: string, repoURL: s
 }
 
 
-export const main = async (url: string) => {
+export const main = async (url: string): Promise<any> => { // Specify the return type
     const token: string = process.env.GITHUB_TOKEN || "";
     const inputURL: string = url;
-    
-    // get repoDetails
 
+    // Initialize the log file
     initLogFile();
 
+    // Get repo details
     const repoDetails = await getRepoDetails(token, inputURL);
     const [owner, repo, repoURL]: [string, string, string] = repoDetails;
 
-    /* 
-        Now that the repo owner (owner) and repo name (repo) have
-        been parsed, we can use the github api to calc metrics
-    */
-   const repoData = await fetchRepoData(owner, repo, token);
-   if (!repoData.data) {
-       logToFile("Error fetching repo data", 1); 
-       return;
+    // Fetch repository data from GitHub API
+    const repoData = await fetchRepoData(owner, repo, token);
+    if (!repoData.data) {
+        logToFile("Error fetching repo data", 1);
+        return null; // Return null or an appropriate error value
     }
 
-    // calculate all metrics (concurrently)
-    let metrics = await calculateMetrics(owner, repo, token, repoURL, repoData, inputURL);
+    // Calculate all metrics (concurrently)
+    const metrics = await calculateMetrics(owner, repo, token, repoURL, repoData, inputURL);
     if (metrics == null) {
-        return;
+        return null; // Return null if metrics calculation fails
     }
 
-    // logMetrics
+    // Log metrics to the file
     logToFile(JSON.stringify(metrics, null, 2), 1);
-    // print metrics to stdout
-    metricsLogToStdout(metrics, 1);
-}
+    
+    // Print metrics to stdout
+    // metricsLogToStdout(metrics, 1);
+
+    return metrics; // Return the calculated metrics at the end
+};
