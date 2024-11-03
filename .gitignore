@@ -34,4 +34,5 @@ node_modules
 *.txt
 repos/
 
+!*/*/requirements.txt
 */*/coverage/
