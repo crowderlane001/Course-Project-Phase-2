@@ -1,19 +1,44 @@
-name: Run Commands on Push
+yaml
+Copy code
+name: CI
 
 on:
   push:
     branches:
-      - main  # Change this to your default branch name (e.g., 'master', 'develop')
+      - main  # Change this to any branch you want the CI to run on
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  run-commands:
+  test:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out code
-        uses: actions/checkout@v4
+    - name: Check out code
+      uses: actions/checkout@v3
 
-      - name: Run install and urls.txt
-        run: |
-          cd backend/cli
-          ./run install
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'  # Replace with your Python version
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Create .env file from GitHub Secrets
+      run: |
+        echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> .env
+        echo "LOG_FILE="logs/system.log"" >> .env
+        echo "LOG_LEVEL=2" >> .env
+      # Optional: Print the .env file to confirm its contents (but remove it in production for security reasons)
+      # run: cat .env
+
+    - name: Run Python tester
+      env:
+        ENV_FILE: .env
+      run: |
+        cd backend/tester_cli
+        python3 script.py  # Replace with your Python script name

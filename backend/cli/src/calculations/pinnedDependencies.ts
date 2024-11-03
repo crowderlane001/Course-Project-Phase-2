@@ -5,7 +5,6 @@ export async function calcPinnedDependencies(owner: string, repo: string, token:
     const packageJsonPath = path.join("./repos", `${owner}_${repo}`, 'package.json');
 
     if (!fs.existsSync(packageJsonPath)) {
-        logToFile(`Error: package.json not found for ${owner}/${repo}`, 1);
         return 1.0; // No dependencies, so return 1.0
     }
 
@@ -14,7 +13,6 @@ export async function calcPinnedDependencies(owner: string, repo: string, token:
 
     const totalDependencies = Object.keys(dependencies).length;
     if (totalDependencies === 0) {
-        logToFile(`Error: No dependencies found in ${owner}/${repo} package.json`, 1);
         return 1.0;
     }
 

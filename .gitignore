@@ -33,3 +33,5 @@ node_modules
 !package.json
 *.txt
 repos/
+
+*/*/coverage/

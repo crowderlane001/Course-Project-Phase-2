@@ -1,5 +1,5 @@
-import os
 from dotenv import load_dotenv
+import os
 
 # Load environment variables from .env file
 load_dotenv()
@@ -8,6 +8,7 @@ load_dotenv()
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 LOG_FILE = os.getenv("LOG_FILE")
 LOG_LEVEL = os.getenv("LOG_LEVEL", 2)  # Default to 2 if not set
+
 
 # Repository location
 REPO_PATH = "/home/shay/a/chen3900/Documents/ECE461/Leo-Course-Project-Phase-2/backend/cli"

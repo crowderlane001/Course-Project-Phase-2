@@ -86,8 +86,7 @@ program
     .action(() => {
         try {
             // Run Jest tests and output results to a file
-            // console.log('Running Jest tests...');
-            execSync('npx jest --silent > test/jest-output.txt 2>&1', { stdio: 'ignore' });
+            execSync('npx jest test/index.test.js --coverage --silent > test/jest-output.txt 2>&1', { stdio: 'ignore' });
             // console.log('Tests completed. Output written to test/jest-output.txt');
         } catch (error) {
             continueOnError = true;
