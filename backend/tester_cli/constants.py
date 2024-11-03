@@ -10,13 +10,16 @@ LOG_FILE = os.getenv("LOG_FILE")
 LOG_LEVEL = os.getenv("LOG_LEVEL", 2)  # Default to 2 if not set
 
 
-# Repository location
-REPO_PATH = "backend/cli"
+# Get the directory of the current file
+current_file_directory = os.path.dirname(os.path.abspath(__file__))
+
+# Specify the relative path from the current file's directory
+REPO_PATH = os.path.join(current_file_directory, "..", "cli")
 
 
 ## =================== DO NOT MODIFY BELOW THIS LINE =================== ##
 # constants
-ONE_URL = os.path.join(os.path.dirname(os.path.realpath(__file__)), "one-url.txt")
+URL_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), "urls.txt")
 
 # JSON Fields
 FIELDS = [

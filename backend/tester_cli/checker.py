@@ -4,7 +4,7 @@ import re
 import subprocess as sp
 import sys
 
-from constants import GITHUB_TOKEN, LOG_FILE, LOG_LEVEL, ONE_URL
+from constants import GITHUB_TOKEN, LOG_FILE, LOG_LEVEL, URL_FILE
 from helper import *
 
 
@@ -18,12 +18,11 @@ def run_install() -> int:
 
     install = CLI_CMD_WRAPPER("./run install")
     test_suite = CLI_CMD_WRAPPER("./run test")
-    url_file = CLI_CMD_WRAPPER(f'./run "{ONE_URL}"')
+    url_file = CLI_CMD_WRAPPER(f'./run "{URL_FILE}"')
 
     install_rc, output = install.run()
     test_suite_rc, output = test_suite.run()
     url_file_rc, output = url_file.run()
-    print(url_file_rc, output)
     total_correct = install_rc + test_suite_rc + url_file_rc
 
     print_test_result("> Install command %s successfully!", install_rc, "exited", "did not exit")
@@ -42,7 +41,7 @@ def run_install() -> int:
 # Each score should have up to 5 decimal places of precision, with no trailing zeroes
 # The command should exit 0 on success, and non-zero on failure
 def run_urlfile() -> int:
-    url_file = CLI_CMD_WRAPPER(f"./run {ONE_URL}")
+    url_file = CLI_CMD_WRAPPER(f"./run {URL_FILE}")
     url_file_rc, output = url_file.run()
     total_correct = 0
 
