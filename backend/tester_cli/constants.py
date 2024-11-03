@@ -11,7 +11,7 @@ LOG_LEVEL = os.getenv("LOG_LEVEL", 2)  # Default to 2 if not set
 
 
 # Repository location
-REPO_PATH = "/home/shay/a/chen3900/Documents/ECE461/Leo-Course-Project-Phase-2/backend/cli"
+REPO_PATH = "backend/cli"
 
 
 ## =================== DO NOT MODIFY BELOW THIS LINE =================== ##
