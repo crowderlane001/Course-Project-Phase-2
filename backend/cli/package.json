@@ -29,8 +29,8 @@
     "typescript": "^5.6.2",
     "typescript-eslint": "^8.5.0"
   },
-  "name": "acme_corp_cli_interface",
-  "description": "Aidan Poor Glen Cheng Julianne Iacarrino Matthew Li",
+  "name": "npm-registry",
+  "description": "This is cli for calculating metrics of npm modules",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {

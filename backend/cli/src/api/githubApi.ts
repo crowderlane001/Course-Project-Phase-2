@@ -2,8 +2,6 @@ import { apiGetRequest, apiPostRequest } from './apiUtils'
 import { ApiResponse, GraphQLResponse } from '../types';
 import { ContributorResponse } from '../types';
 import { getRepoDataQuery } from './graphqlQueries';
-import { writeFile } from '../utils/utils';
-import { StringLiteral } from 'typescript';
 
 const GITHUB_BASE_URL: string = "https://api.github.com"
 

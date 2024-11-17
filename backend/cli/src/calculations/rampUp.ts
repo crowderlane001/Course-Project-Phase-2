@@ -1,5 +1,5 @@
-import { ApiResponse, GraphQLResponse } from '.././types';
-import { getReadmeDetails } from ".././api/githubApi";
+import { ApiResponse, GraphQLResponse } from '../types';
+import { getReadmeDetails } from "../api/githubApi";
 
 interface Repository {
     [key: string]: { text: string } | null | undefined;

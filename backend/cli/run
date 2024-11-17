@@ -26,7 +26,7 @@ program
     .command('install')
     .description('install all dependencies')
     .action(() => {
-        exec('npm install --save-dev && tsc --init', (error, stdout, stderr) => {
+        exec('npm install --save-dev', (error, stdout, stderr) => {
             if (error) {
                 console.error(`%cError installing dependencies: ${error}`, `color: red`);
                 console.error(`%cError installing dependencies: ${stderr}`, `color: red`);
@@ -41,40 +41,42 @@ program
             }
             // console.log(`%c${stdout}`, 'color: green');
         });
+        exec('tsc');
     });
 
 program
     .argument('<file>', 'file to run')
     .description('process URL of the file to run and output metrics in NDJSON format')
-    .action((file) => { 
+    .action(async (file) => { // Make the action async
+        const { main } = require('./src/index');
+
         try {
-            execSync('tsc code/index.ts', { stdio: 'ignore' });
-        } catch(error) {
-            // console.log('TSC file compiled successfully');
-        }
-        
-        const {main} =  require('./code/index');
-        fs.readFile(file, 'utf8', (err, data) => {
-            if (err) {
-                console.error(`%cError reading file: ${err}`, `color: red`);
-                process.exit(1);
-            } else if(process.env.LOG_FILE == null || process.env.LOG_FILE == '') {
+            const data = await fs.promises.readFile(file, 'utf8'); // Read file asynchronously
+            if (!process.env.LOG_FILE) {
                 console.log('LOG_FILE environment variable is not set');
                 process.exit(1);
-            } else if(process.env.GITHUB_TOKEN == null || process.env.GITHUB_TOKEN == '') {
+            } else if (!process.env.GITHUB_TOKEN) {
                 console.log('GITHUB_TOKEN environment variable is not set');
                 process.exit(1);
-            } else if(process.env.LOG_LEVEL == null || process.env.LOG_LEVEL == '') {
+            } else if (!process.env.LOG_LEVEL) {
                 console.log('LOG_LEVEL environment variable is not set');
                 process.exit(1);
             }
+
             const urls = data.split('\n').map(line => line.trim()).filter(line => line !== '');
-            urls.forEach(url => {
-                // console.log(`Processing URL: ${url}`);
-                const metrics = main(url);
-                // console.log(JSON.stringify(metrics));
+            const metricsPromises = urls.map(url => main(url)); // Collect promises
+
+            const allMetrics = await Promise.all(metricsPromises); // Wait for all to complete
+            
+            // Print out each metric JSON one by one
+            allMetrics.forEach((metric, index) => {
+                console.log(JSON.stringify(metric)); // Pretty print each metric
             });
-        });
+            process.exit(0); // Exit with code 0 when all operations are complete
+        } catch (err) {
+            console.error(`%cError: ${err}`, `color: red`);
+            process.exit(1);
+        }
     });
     //include the commands to run the tests etc
 
@@ -84,8 +86,7 @@ program
     .action(() => {
         try {
             // Run Jest tests and output results to a file
-            // console.log('Running Jest tests...');
-            execSync('npx jest --silent > test/jest-output.txt 2>&1', { stdio: 'ignore' });
+            execSync('npx jest test/index.test.js --coverage --silent > test/jest-output.txt 2>&1', { stdio: 'ignore' });
             // console.log('Tests completed. Output written to test/jest-output.txt');
         } catch (error) {
             continueOnError = true;
