@@ -20,6 +20,7 @@ import Cookies from "js-cookie";
 import User from "./models/user-model";
 import SearchResults from "./pages/SearchResults";
 
+
 function initialize(setUser: (user: User | null) => void) {
   console.log("Initializing...");
   const cookie = Cookies.get("user");
