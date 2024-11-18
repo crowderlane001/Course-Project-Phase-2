@@ -1,63 +1,63 @@
-name: Deploy Lambda CI/CD
+# name: Deploy Lambda CI/CD
 
-on:
-  push:
-    branches:
-      - main
-    # paths:
-    #   - 'backend/src/functions/**'  # Only trigger on changes to Lambda function code
+# on:
+#   push:
+#     branches:
+#       - main
+#     # paths:
+#     #   - 'backend/src/functions/**'  # Only trigger on changes to Lambda function code
 
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write   # Required for AWS authentication
-      contents: read    # Required to checkout code
+# jobs:
+#   build-and-deploy:
+#     runs-on: ubuntu-latest
+#     permissions:
+#       id-token: write   # Required for AWS authentication
+#       contents: read    # Required to checkout code
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          # cache: 'npm'
-          # cache-dependency-path: backend/src/functions/package-lock.json
+#       - name: Set up Node.js
+#         uses: actions/setup-node@v3
+#         with:
+#           node-version: '18'
+#           # cache: 'npm'
+#           # cache-dependency-path: backend/src/functions/package-lock.json
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}  # Add this to your GitHub secrets
+#       - name: Configure AWS Credentials
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: ${{ secrets.AWS_REGION }}  # Add this to your GitHub secrets
 
-      - name: Clear NPM Cache
-        run: npm cache clean --force
+#       - name: Clear NPM Cache
+#         run: npm cache clean --force
 
-      - name: Install dependencies 
-        working-directory: backend/src/functions
-        run: |
-          npm install
-          npm install zod@latest
-          npm install typescript
+#       - name: Install dependencies 
+#         working-directory: backend/src/functions
+#         run: |
+#           npm install
+#           npm install zod@latest
+#           npm install typescript
 
-      - name: Compile TypeScript
-        working-directory: backend/src/functions/packages
-        run: 
-          npx tsc
+#       - name: Compile TypeScript
+#         working-directory: backend/src/functions/packages
+#         run: 
+#           npx tsc
 
-      - name: Create deployment package
-        working-directory: backend/src/functions
-        run: |
-          zip -r create_package.zip packages/create.js node_modules/
+#       - name: Create deployment package
+#         working-directory: backend/src/functions
+#         run: |
+#           zip -r create_package.zip packages/create.js node_modules/
 
-      - name: Update Lambda function
-        run: |
-          aws lambda update-function-code \
-            --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \
-            --zip-file fileb://backend/src/functions/create_package.zip
+#       - name: Update Lambda function
+#         run: |
+#           aws lambda update-function-code \
+#             --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \
+#             --zip-file fileb://backend/src/functions/create_package.zip
 
-      # Optional: Clean up deployment package
-      - name: Clean up
-        run: rm backend/src/functions/create_package.zip
+#       # Optional: Clean up deployment package
+#       - name: Clean up
+#         run: rm backend/src/functions/create_package.zip
