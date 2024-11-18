@@ -52,11 +52,6 @@ jobs:
         run: |
           zip -r create_package.zip packages/create.js node_modules/
 
-      - name: rate deployment package
-        working-directory: backend/src/functions
-        run: |
-          zip -r rate_package.zip packages/rate.js node_modules/
-
       - name: Update Lambda function
         run: |
           aws lambda update-function-code \
