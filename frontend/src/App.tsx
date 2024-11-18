@@ -1,5 +1,5 @@
 import {
-  BrowserRouter as Router,
+  HashRouter as Router,
   Route,
   Routes,
   useLocation,
@@ -19,7 +19,6 @@ import NotFound from "./pages/404";
 import Cookies from "js-cookie";
 import User from "./models/user-model";
 import SearchResults from "./pages/SearchResults";
-
 
 function initialize(setUser: (user: User | null) => void) {
   console.log("Initializing...");
