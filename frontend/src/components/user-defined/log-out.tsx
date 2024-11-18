@@ -1,7 +1,7 @@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuGroup } from "@/components/ui/dropdown-menu";
 import { useUserManager } from "@/hooks/use-usermanager";
 import { Button } from "@/components/ui/button";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ChevronsDownUp, ChevronsUpDown } from "lucide-react";
 import Cookies from "js-cookie";
 
 function LogOutButton() {
@@ -12,12 +12,16 @@ function LogOutButton() {
         Cookies.remove("user");
     }
 
-    const spacer = <div className="w-2 h-1"></div>
-
+    const spacer = <div className="w-2 h-1"></div>;
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="outline">Hello, {user?.username}{spacer}{<ChevronDown size="1rem" />}</Button>
+                <Button variant="outline" className="w-full mobile:h-16">
+                    Hello, {user?.username}
+                    {spacer}
+                    {<><div className="mobile:hidden"><ChevronDown size="1rem" /></div>
+                        <div><ChevronsUpDown className="md:hidden" size="1rem" /></div></>}
+                </Button>
 
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56">

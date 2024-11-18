@@ -8,6 +8,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { LoginForm } from "@/components/user-defined/login-form";
+import { Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from '../ui/drawer';
 
 interface LoginButtonProps {
     children: React.ReactNode;
@@ -15,19 +16,32 @@ interface LoginButtonProps {
 
 function LoginButton({ children }: LoginButtonProps) {
     return (
-        <Dialog>
-            <DialogTrigger asChild>{children}</DialogTrigger>
-            <DialogContent>
-                <DialogHeader>
+        <><div className='mobile:hidden'>
+            <Dialog>
+                <DialogTrigger asChild>{children}</DialogTrigger>
+                <DialogContent>
                     <DialogTitle>Login</DialogTitle>
-                    <DialogDescription>
-                        Enter your credentials to login.
-                    </DialogDescription>
-                </DialogHeader>
-                <LoginForm />
-            </DialogContent>
-        </Dialog>
-
+                    <DialogHeader>
+                        <DialogDescription>
+                            Enter your credentials to login.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <LoginForm />
+                </DialogContent>
+            </Dialog>
+        </div>
+            <div className="mobile:block md:hidden">
+                <Drawer>
+                    <DrawerTrigger asChild>{children}</DrawerTrigger>
+                    <DrawerContent className='p-5 pb-20 flex flex-col items-center'>
+                        <DrawerTitle className='flex text-4xl pt-20 flex-row justify-center'>
+                            Login
+                        </DrawerTitle>
+                        <LoginForm />
+                    </DrawerContent>
+                </Drawer>
+            </div>
+        </>
     );
 }
 

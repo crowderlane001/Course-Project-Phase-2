@@ -18,6 +18,7 @@ import Logo from "./logo";
 import LoginButton from "./login-button";
 import LogOutButton from "./log-out";
 import React from "react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 
 interface ShellProps {
   children: React.ReactNode;
@@ -98,7 +99,7 @@ export function Shell({ children }: ShellProps) {
                 <span className="sr-only">Toggle navigation menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="flex flex-col">
+            <SheetContent side="left" className="flex flex-col justify-between">
               <nav className="grid gap-2 text-lg font-medium">
                 <NavLink
                   to="/"
@@ -159,6 +160,12 @@ export function Shell({ children }: ShellProps) {
                   </NavLink>
                 </SheetTrigger>
               </nav>
+              <div className="h-16 w-full drop-shadow-lg rounded-md">
+                {user ? <LogOutButton /> :
+                  <LoginButton>
+                    <Button className="primary-bg w-full h-16">Login</Button>
+                  </LoginButton>}
+              </div>
             </SheetContent>
           </Sheet>
           <div className="w-full flex-1">
@@ -176,7 +183,7 @@ export function Shell({ children }: ShellProps) {
               </div>
             </form>
           </div>
-          <div className="flex flex-row gap-5">
+          <div className="flex flex-row gap-5 mobile:hidden">
             {user ? <LogOutButton /> :
               <LoginButton>
                 <Button className="primary-bg">Login</Button>
