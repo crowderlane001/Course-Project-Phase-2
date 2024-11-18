@@ -1,0 +1,46 @@
+name: Frontend Automations
+
+on:
+  push:
+    branches:
+      - main  # Trigger on push to the main branch; adjust as necessary
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    environment: Keys
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'  # Specify Node.js version
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm install
+      - name: Run build script
+        run: |
+          cd frontend
+          npm run build  # Adjust if your script name is different
+          
+      - name: Push to another repository
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          SSH_DEPLOY_KEY: ${{ secrets._SITE_TOKEN }}
+        with:
+          source-directory: 'frontend/dist'  # Your built files directory
+          destination-github-username: 'ece-461-team-9'
+          destination-repository-name: 'ece-461-team-9.github.io'
+          user-email: crowderl@purdue.edu
+          target-branch: main
+          target-directory: ''  # Leave this blank or specify a subdirectory
+          commit-message: 'Automated deployment from GitHub Actions'
+          create-target-branch-if-needed: true
