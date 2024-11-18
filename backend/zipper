@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# Check if the user provided the correct argument
+if [ -z "$1" ]; then
+  echo "Usage: $0 <upload|update|rate|download>"
+  exit 1
+fi
+
+# Argument specifying the action type
+action="$1"
+shift  # Remove the action argument from the list
+
+# Initialize files and directories to zip based on the action
+case "$action" in
+  upload)
+    files_to_zip="cli/node_modules cli/src src/functions/node_modules src/functions/packages/create.ts"  # Example: Replace with your actual directories/files
+    ;;
+  update)
+    # files_to_zip="update_dir/ update_file1.txt update_file2.txt"  # Example: Replace with your actual directories/files
+    ;;
+  rate)
+    # files_to_zip="rate_dir/ rate_file1.txt rate_file2.txt"  # Example: Replace with your actual directories/files
+    ;;
+  download)
+    # files_to_zip="download_dir/ download_file1.txt download_file2.txt"  # Example: Replace with your actual directories/files
+    ;;
+  *)
+    echo "Invalid argument. Please use one of the following: upload, update, rate, download."
+    exit 1
+    ;;
+esac
+
+# Create the zip file with the corresponding files or directories
+zip -r "${action}_archive.zip" $files_to_zip
+
+# Check if the zip command was successful
+if [ $? -eq 0 ]; then
+  echo "Successfully created ${action}_archive.zip."
+else
+  echo "An error occurred while creating the zip archive."
+  exit 1
+fi
