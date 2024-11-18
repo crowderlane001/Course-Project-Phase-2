@@ -4,6 +4,7 @@ import { defineConfig } from "vite"
 
 export default defineConfig({
   plugins: [react()],
+  base: "/ece-461-team-9.github.io/",
   optimizeDeps: {
     include: ["@types/js-cookie"],
   },
