@@ -18,7 +18,6 @@ import Logo from "./logo";
 import LoginButton from "./login-button";
 import LogOutButton from "./log-out";
 import React from "react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 
 interface ShellProps {
   children: React.ReactNode;
