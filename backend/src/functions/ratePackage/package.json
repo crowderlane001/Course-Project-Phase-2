@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.x",
+    "@aws-sdk/lib-dynamodb": "^3.x",
+    "zod": "^3.x",
+    "axios": "^1.7.7",
+    "dotenv": "^16.4.5",
+    "isomorphic-git": "^1.27.1",
+    "types": "^0.1.1"
+  },
+  "devDependencies": {
+  },
+  "name": "ratePackage",
+  "description": "This is a package meant to uploaded to AWS Lambda to rate packages.",
+  "version": "1.0.0",
+  "main": "index.js"
+}
