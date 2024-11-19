@@ -1,4 +1,4 @@
-import Page from "@/components/ui/page";
+import Page from "@/components/user-defined/page";
 import React from "react";
 
 const Analytics: React.FC = () => {
