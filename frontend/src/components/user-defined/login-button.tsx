@@ -33,7 +33,7 @@ function LoginButton({ children }: LoginButtonProps) {
             <div className="mobile:block md:hidden">
                 <Drawer>
                     <DrawerTrigger asChild>{children}</DrawerTrigger>
-                    <DrawerContent className='p-5 pb-20 flex flex-col items-center'>
+                    <DrawerContent className='p-5 pb-28 flex flex-col items-center'>
                         <DrawerTitle className='flex text-4xl pt-20 flex-row justify-center'>
                             Login
                         </DrawerTitle>

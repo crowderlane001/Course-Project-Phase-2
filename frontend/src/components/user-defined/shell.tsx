@@ -100,16 +100,10 @@ export function Shell({ children }: ShellProps) {
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col justify-between">
               <nav className="grid gap-2 text-lg font-medium">
-                <NavLink
-                  to="/"
-                  className={({ isActive }) =>
-                    `flex items-center gap-2 text-lg font-semibold ${isActive ? 'text-primary' : 'text-muted-foreground'
-                    }`
-                  }
-                >
-                  <Package2 className="h-6 w-6" />
-                  <span className="sr-only">Acme Inc</span>
-                </NavLink>
+
+                <Package2 className="h-6 w-6" />
+                <span className="sr-only">Acme Inc</span>
+
                 <SheetTrigger asChild>
                   <NavLink
                     to="/"

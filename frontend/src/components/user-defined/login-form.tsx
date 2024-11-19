@@ -61,7 +61,7 @@ export function LoginForm() {
                         <FormItem>
                             <FormLabel>Username</FormLabel>
                             <FormControl>
-                                <Input placeholder="Enter username" {...field} />
+                                <Input className="text-base" placeholder="Enter username" {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -74,7 +74,7 @@ export function LoginForm() {
                         <FormItem>
                             <FormLabel>Password</FormLabel>
                             <FormControl>
-                                <Input type="password" placeholder="Enter password" {...field} />
+                                <Input className="text-base" type="password" placeholder="Enter password" {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
