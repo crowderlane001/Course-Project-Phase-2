@@ -1,10 +1,30 @@
 import { ApiResponse, GraphQLResponse } from './types';
 import { runWorker } from './index';
 import { Metrics, WorkerResult } from './types'
+import { clone } from 'isomorphic-git';
+import * as fs from 'fs';
+import http from 'isomorphic-git/http/node';
+import * as path from 'path';
 
+
+export const cloner = async (repoUrl: string, localDir: string): Promise<null> => {
+    await clone({
+        fs,
+        http,
+        dir: localDir,
+        url: repoUrl,
+        singleBranch: true,
+        depth: 1,
+        
+    });
+
+    return null;
+}
 
 // Modifying the calculateMetrics function to include the new metrics
 export async function calculateMetrics(owner: string, repo: string, token: string, repoURL: string, repoData: ApiResponse<GraphQLResponse | null>, inputURL: string): Promise<Metrics | null> {
+    await cloner(repoURL, path.join('/tmp'));
+    
     const busFactorWorker = runWorker(owner, repo, token, repoURL, repoData, "busFactor");
     const correctnessWorker = runWorker(owner, repo, token, repoURL, repoData, "correctness");
     const rampUpWorker = runWorker(owner, repo, token, repoURL, repoData, "rampUp");

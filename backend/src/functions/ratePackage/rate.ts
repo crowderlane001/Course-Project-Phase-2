@@ -103,7 +103,10 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       new UpdateCommand({
         TableName: TABLE_NAME,
         Key: { id: packageId },
-        UpdateExpression: "SET metrics = :metrics",
+        UpdateExpression: "SET #metrics = :metrics",
+        ExpressionAttributeNames: {
+          "#metrics": "metrics",
+        },
         ExpressionAttributeValues: {
           ":metrics": metrics,
         },
