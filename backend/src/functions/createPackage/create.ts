@@ -2,12 +2,12 @@ import { z } from 'zod';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { DynamoDBClient, PutItemCommand, GetItemCommand, AttributeValue } from '@aws-sdk/client-dynamodb';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { randomUUID } from 'crypto';
 
 import { Buffer } from 'buffer';
 const unzipper = require('unzipper');
 
 import axios from 'axios';
-import * as path from 'path';
 /*
 Take in zip. check if package.json to get name, metadata
 
@@ -47,12 +47,13 @@ const s3Client = new S3Client({});
 const dynamoClient = new DynamoDBClient({});
 
 // Helper function to check if package exists
-async function checkPackageExists(id: string): Promise<boolean> {
+async function checkPackageExists(name: string, version: string): Promise<boolean> {
   try {
     const response = await dynamoClient.send(new GetItemCommand({
       TableName: TABLE_NAME,
       Key: {
-        'id': { S: id }
+        'name': { S: name },
+        'version': {S: version}
       }
     }));
     return !!response.Item;
@@ -167,12 +168,14 @@ async function storePackageContent(id: string, content: string): Promise<string>
     }
   }
 
-  async function downloadAndStorePackage(url: string, content: string, packageId: string, isZip: boolean): Promise<string> {
+  async function downloadAndStorePackage(url: string, content: string, packageId: string, isZip: boolean): Promise<{s3Key: string, base64Content: string}> {
     try {
       let downloadUrl: string;
       let packageData: Buffer;
+      let base64Content: string;
 
       if (isZip){
+        base64Content = content;
         packageData = Buffer.from(content, 'base64');
       }
       else{
@@ -203,7 +206,8 @@ async function storePackageContent(id: string, content: string): Promise<string>
             }
           });
     
-          packageData = response.data;
+          packageData = Buffer.from(response.data);
+          base64Content = packageData.toString('base64');
         } else if (url.includes('github.com')) {
           // Handle GitHub URLs as before
           downloadUrl = url.replace('github.com', 'api.github.com/repos')
@@ -220,17 +224,16 @@ async function storePackageContent(id: string, content: string): Promise<string>
             }
           });
     
-          packageData = response.data;
+          packageData = Buffer.from(response.data);
+          base64Content = packageData.toString('base64');
         } else {
           throw new Error('Unsupported package source URL');
         }
       }
   
-      
-  
       // Generate S3 key
       const fileExtension = url.includes('npmjs.com') ? 'tgz' : 'zip';
-      const s3Key = `${packageId}/${packageId}.${fileExtension}`;
+      const s3Key = `${packageId}.${fileExtension}`;
   
       // Upload to S3
       await s3Client.send(new PutObjectCommand({
@@ -244,7 +247,10 @@ async function storePackageContent(id: string, content: string): Promise<string>
       }));
   
       console.log(`Successfully stored package content at ${s3Key}`);
-      return s3Key;
+      return {
+        s3Key,
+        base64Content
+      };
   
     } catch (error) {
       console.error('Error in downloadAndStorePackage:', error);
@@ -260,7 +266,6 @@ async function storePackageMetadata(
     ID: string;
   },
   data: {
-    Content: string;
     URL: string;
     JSProgram?: string;
     debloat?: boolean;
@@ -277,7 +282,6 @@ async function storePackageMetadata(
       'name': { S: metadata.Name },
       'version': { S: metadata.Version },
       's3Key': { S: s3Key },
-      'content': {S: data.Content},
       'url': { S: data.URL },
       'createdAt': { S: timestamp },
       'updatedAt': { S: timestamp }
@@ -382,13 +386,14 @@ export async function handler(
     const metadata = {
       Name: packageInfo.name,
       Version: packageInfo.version,
-      ID: generatePackageId(packageInfo.name, packageInfo.version)
+      ID: randomUUID()
+      // ID: generatePackageId(packageInfo.name, packageInfo.version)
     };
 
     // Store package content and metadata
     // ... (rest of your existing code)
 
-    const exists = await checkPackageExists(metadata.ID);
+    const exists = await checkPackageExists(metadata.Name, metadata.Version);
     if (exists) {
       return {
         statusCode: 409,
@@ -402,23 +407,22 @@ export async function handler(
     }   
 
     //create separate for content
-    const s3Key = await downloadAndStorePackage(url, content, metadata.ID, isZip);
+    const result = await downloadAndStorePackage(url, content, metadata.ID, isZip);
 
     // Store metadata in DynamoDB
     // await storePackageMetadata(metadata, data.data, s3Key);
-    await storePackageMetadata(metadata, { ...data.data, Content: data.data.Content || "", URL: data.data.URL || "" }, s3Key);
+    await storePackageMetadata(metadata, { ...data.data, URL: data.data.URL || "" }, result.s3Key);
 
     let responseBody: any = {
       metadata,
       data: {
+        Content: result.base64Content,
         JSProgram: data.data.JSProgram,
         debloat: data.data.debloat
       }
     };
 
-    if (content) {
-      responseBody.data.Content = content;
-    } else if (url) {
+    if (url) {
       responseBody.data.URL = url;
     }
 
