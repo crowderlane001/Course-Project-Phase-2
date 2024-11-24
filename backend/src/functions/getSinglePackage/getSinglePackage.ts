@@ -1,8 +1,12 @@
-import { DynamoDB } from 'aws-sdk';
+import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 
-const dynamodb = new DynamoDB.DocumentClient();
+const dynamodb = new DynamoDBClient({});
+const s3Client = new S3Client({});
 const TABLE_NAME = "PackageRegistry";
+const BUCKET_NAME = "storage-phase-2";
 
 // Validate PackageID format
 const isValidPackageId = (id: string): boolean => {
@@ -10,12 +14,38 @@ const isValidPackageId = (id: string): boolean => {
   return packageIdPattern.test(id);
 };
 
+// Get and convert S3 content to base64
+async function getS3ContentAsBase64(s3Key: string): Promise<string> {
+  try {
+    const response = await s3Client.send(new GetObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: s3Key
+    }));
+
+    // Convert the readable stream to buffer
+    const chunks = [];
+    const stream = response.Body as any;
+    
+    for await (const chunk of stream) {
+      chunks.push(chunk);
+    }
+    
+    const buffer = Buffer.concat(chunks);
+    return buffer.toString('base64');
+  } catch (error) {
+    console.error('Error getting S3 content:', error);
+    throw new Error('Failed to retrieve package content from S3');
+  }
+}
+
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   try {
-    // Extract package ID from path parameters
+    console.log('Event:', JSON.stringify(event));
+    console.log('Path Parameters:', JSON.stringify(event.pathParameters));
+   
     const packageId = event.pathParameters?.id;
+    console.log('Package ID:', packageId);
 
-    // Check if package ID exists
     if (!packageId) {
       return {
         statusCode: 400,
@@ -25,7 +55,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       };
     }
 
-    // Validate package ID format
     if (!isValidPackageId(packageId)) {
       return {
         statusCode: 400,
@@ -35,30 +64,16 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       };
     }
 
-    // Get authentication token from headers if needed
-    // const authToken = event.headers?.['Authorization'];
-    
-    // // Add authentication check if required
-    // if (!authToken) {
-    //   return {
-    //     statusCode: 403,
-    //     body: JSON.stringify({
-    //       message: 'Authentication failed. Missing authentication token.'
-    //     })
-    //   };
-    // }
-
-    // Query DynamoDB
     const params = {
       TableName: TABLE_NAME!,
-      Key: {
+      Key: marshall({
         id: packageId
-      }
+      })
     };
 
-    const result = await dynamodb.get(params).promise();
+    const command = new GetItemCommand(params);
+    const result = await dynamodb.send(command);
 
-    // Check if package exists
     if (!result.Item) {
       return {
         statusCode: 404,
@@ -68,32 +83,35 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       };
     }
 
-    // Transform DynamoDB item into response format
+    const unitem = unmarshall(result.Item);
+
+    if (!unitem.s3Key) {
+      throw new Error('S3 key not found in package metadata');
+    }
+    
+    // Get base64 content from S3
+    const base64Content = await getS3ContentAsBase64(unitem.s3Key);
+
     const response = {
       metadata: {
-        Name: result.Item.name,
-        Version: result.Item.version,
-        ID: result.Item.id
+        Name: unitem.name,
+        Version: unitem.version,
+        ID: unitem.id
       },
       data: {
-        Content: result.Item.content,
-        URL: result.Item.url,
-        JSProgram: result.Item.jsProgram
+        Content: base64Content, // Now using the base64 content from S3
+        URL: unitem.url,
+        JSProgram: unitem.jsProgram
       }
     };
 
-    // Return successful response
     return {
       statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json'
-      },
       body: JSON.stringify(response)
     };
-
   } catch (error) {
     console.error('Error retrieving package:', error);
-    
+   
     return {
       statusCode: 500,
       body: JSON.stringify({
