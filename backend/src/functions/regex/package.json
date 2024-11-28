@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.319.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.120"
+  }
+  "name": "downloadPackage",
+  "description": "This is a package meant to download packages that were sent to the registry.",
+  "version": "1.0.0",
+  "main": "index.js"
+}

@@ -87,11 +87,11 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       throw new PackageRegistryError(`Package with ID '${packageId}' does not exist`, 404);
     }
 
-    if(!Item.url) {
+    if(!Item.URL) {
       throw new PackageRegistryError("The package URL is missing", 500);
     }
 
-    const metrics = await main(Item.url);
+    const metrics = await main(Item.URL);
 
     // Check if metrics are available for the package
     if (!metrics) {

@@ -23,6 +23,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+*.zip
 
 #previous team
 node_modules
