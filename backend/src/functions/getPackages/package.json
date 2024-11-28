@@ -1,0 +1,19 @@
+{
+  "name": "package-registry-lambda",
+  "version": "1.0.0",
+  "description": "AWS Lambda function for querying package metadata",
+  "main": "getPackages.js",
+  "scripts": {
+    "build": "tsc",                          
+    "deploy": "serverless deploy"        
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.49.0",  
+    "zod": "^3.21.4"                        
+  },
+  "devDependencies": {
+    "typescript": "^5.2.0",                 
+    "@types/node": "^20.6.1"               
+  },
+  "license": "MIT"
+}
