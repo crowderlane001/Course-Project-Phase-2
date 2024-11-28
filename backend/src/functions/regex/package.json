@@ -1,13 +1,14 @@
 {
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.319.0",
-    "zod": "^3.22.0"
+    "@aws-sdk/client-dynamodb": "^3.x",
+    "@aws-sdk/lib-dynamodb": "^3.x",
+    "zod": "^3.x"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.120"
-  }
-  "name": "downloadPackage",
-  "description": "This is a package meant to download packages that were sent to the registry.",
+  },
+  "name": "regex",
+  "description": "This is a package meant to filter for packages matching the regex given.",
   "version": "1.0.0",
-  "main": "index.js"
+  "main": "regex.js"
 }

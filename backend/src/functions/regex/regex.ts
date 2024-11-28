@@ -62,3 +62,75 @@
 //           description: A regular expression over package names and READMEs that is
 //             used for searching for a package
 //           type: string
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, ScanCommand } from "@aws-sdk/lib-dynamodb"; // Import the document client
+import { APIGatewayEvent, Context } from "aws-lambda";
+
+// Create a DynamoDB client instance
+const dynamoClient = new DynamoDBClient({ region: "us-east-1" });
+
+// Create a DynamoDBDocumentClient instance from the low-level DynamoDBClient
+const documentClient = DynamoDBDocumentClient.from(dynamoClient);
+
+// Define the DynamoDB table name
+const TABLE_NAME = "PackageRegistry";
+
+export const handler = async (event: APIGatewayEvent, context: Context) => {
+    try {
+        // Extract the search pattern from the event body (looking for 'RegEx')
+        const requestBody = event.body ? JSON.parse(event.body) : {};
+        const pattern: string = requestBody.RegEx || event.queryStringParameters?.RegEx;
+
+        if (!pattern) {
+            return {
+                statusCode: 400,
+                body: JSON.stringify({
+                    message: "'RegEx' is required for searching."
+                }),
+            };
+        }
+
+        const regex = new RegExp(pattern, "i"); // Create a case-insensitive regex
+
+        // Scan the table for all items using the DocumentClient
+        const scanCommand = new ScanCommand({
+            TableName: TABLE_NAME,
+        });
+
+        const scanResult = await documentClient.send(scanCommand);
+
+        // Check for items in the response
+        if (!scanResult.Items || scanResult.Items.length === 0) {
+            return {
+                statusCode: 404,
+                body: JSON.stringify({
+                    message: "No items found in the table."
+                }),
+            };
+        }
+
+        // Filter items based on the Name column
+        const filteredItems = scanResult.Items.filter((item) => {
+            const name = item.Name || ""; // Extract Name attribute directly (no need for .S)
+            return regex.test(name);
+        });
+
+        // Respond with the filtered items
+        return {
+            statusCode: 200,
+            body: JSON.stringify({
+                message: "Matching items found.",
+                items: filteredItems,
+            }),
+        };
+    } catch (error) {
+        console.error("Error processing request:", error);
+        return {
+            statusCode: 500,
+            body: JSON.stringify({
+                message: "Internal server error.",
+                error: error.message,
+            }),
+        };
+    }
+};
