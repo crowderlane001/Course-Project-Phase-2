@@ -34,6 +34,10 @@ Schema:
       in: header
       required: true
 */
+
+//id-index: global secondary index name
+//ID: name of column in dynamodb
+//id: name of packagequery parameter
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
