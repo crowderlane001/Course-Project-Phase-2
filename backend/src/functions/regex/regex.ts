@@ -62,8 +62,43 @@
 //           description: A regular expression over package names and READMEs that is
 //             used for searching for a package
 //           type: string
+
+// PackageMetadata:
+//       description: |-
+//         The "Name" and "Version" are used as a unique identifier pair when uploading a package.
+
+//         The "ID" is used as an internal identifier for interacting with existing packages.
+//       required:
+//       - Name
+//       - Version
+//       - ID
+//       type: object
+//       properties:
+//         Name:
+//           $ref: '#/components/schemas/PackageName'
+//         Version:
+//           description: Package version
+//           type: string
+//           example: 1.2.3
+//         ID:
+//           $ref: '#/components/schemas/PackageID'
+
+// PackageName:
+// description: |-
+//   Name of a package.
+
+//   - Names should only use typical "keyboard" characters.
+//   - The name "*" is reserved. See the `/packages` API for its meaning.
+// type: string
+
+// PackageID:
+// description: "Unique ID for use with the /package/{id} endpoint."
+// example: "123567192081501"
+// type: string
+// pattern: '^[a-zA-Z0-9\-]+$'
+
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, ScanCommand } from "@aws-sdk/lib-dynamodb"; // Import the document client
+import { DynamoDBDocumentClient, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayEvent, Context } from "aws-lambda";
 
 // Create a DynamoDB client instance
@@ -85,7 +120,7 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
             return {
                 statusCode: 400,
                 body: JSON.stringify({
-                    message: "'RegEx' is required for searching."
+                    message: "'RegEx' is required for searching.",
                 }),
             };
         }
@@ -103,25 +138,32 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
         if (!scanResult.Items || scanResult.Items.length === 0) {
             return {
                 statusCode: 404,
-                body: JSON.stringify({
-                    message: "No items found in the table."
-                }),
+                body: JSON.stringify([]), // Return an empty array if no packages are found
             };
         }
 
-        // Filter items based on the Name column
+        // Filter items and enforce PackageMetadata schema
         const filteredItems = scanResult.Items.filter((item) => {
-            const name = item.Name || ""; // Extract Name attribute directly (no need for .S)
+            const name = item.Name || "";
             return regex.test(name);
-        });
+        }).map((item) => {
+            if (!item.Name || !item.Version || !item.ID) {
+                console.warn(
+                    `Skipping invalid item: ${JSON.stringify(item)}`
+                );
+                return null; // Exclude invalid items
+            }
+            return {
+                Name: item.Name, // Expected to exist
+                Version: item.Version, // Expected to exist
+                ID: item.ID, // Expected to exist
+            };
+        }).filter((item) => item !== null); // Remove nulls
 
         // Respond with the filtered items
         return {
             statusCode: 200,
-            body: JSON.stringify({
-                message: "Matching items found.",
-                items: filteredItems,
-            }),
+            body: filteredItems, // Return filteredItems directly
         };
     } catch (error) {
         console.error("Error processing request:", error);
