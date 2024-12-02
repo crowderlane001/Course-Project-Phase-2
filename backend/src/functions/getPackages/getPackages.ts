@@ -120,12 +120,17 @@
 //         - The name "*" is reserved. See the `/packages` API for its meaning.
 //       type: string
 import { z } from 'zod';
-import { DynamoDBClient, QueryCommand, QueryCommandInput } from '@aws-sdk/client-dynamodb';
+import {
+  DynamoDBClient,
+  ScanCommand,
+  QueryCommand,
+  QueryCommandInput,
+} from '@aws-sdk/client-dynamodb';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 
 // Schema Definitions
 const PackageName = z.string().min(1);
-const SemverRange = z.string(); // You can add regex validation if stricter version validation is required
+const SemverRange = z.string().optional(); // Version is now optional
 
 // PackageQuery Schema for request validation
 const PackageQuerySchema = z.object({
@@ -143,26 +148,45 @@ const TABLE_NAME = 'PackageRegistry';
 // Initialize DynamoDB client
 const dynamoClient = new DynamoDBClient({});
 
-// Helper function to fetch packages from DynamoDB
-async function fetchPackagesFromDynamo(
+// Helper function to fetch all packages (wildcard scenario)
+async function fetchAllPackages(offset: number = 0): Promise<any[]> {
+  try {
+    const scanCommand = new ScanCommand({
+      TableName: TABLE_NAME,
+      Limit: 10,
+      ExclusiveStartKey: offset > 0 ? { ID: { N: offset.toString() } } : undefined,
+    });
+
+    const response = await dynamoClient.send(scanCommand);
+    return response.Items || [];
+  } catch (error) {
+    console.error('Error scanning packages:', error);
+    throw new Error(`Failed to fetch all packages: ${(error as Error).message}`);
+  }
+}
+
+// Helper function to fetch packages by name and version
+async function fetchPackagesByNameAndVersion(
   name: string,
-  version: string,
+  version?: string,
   offset: number = 0
 ): Promise<any[]> {
   try {
-    let queryInput: QueryCommandInput = {
+    const queryInput: QueryCommandInput = {
       TableName: TABLE_NAME,
-      Limit: 10, // Adjust the page size as needed
-      ExclusiveStartKey: offset > 0 ? { Name: { S: name }, Version: { S: version } } : undefined,
+      KeyConditionExpression: '#name = :name',
+      ExpressionAttributeNames: { '#name': 'Name' },
+      ExpressionAttributeValues: { ':name': { S: name } },
+      Limit: 10,
+      ExclusiveStartKey: offset > 0 ? { Name: { S: name }, Version: { S: version || '' } } : undefined,
     };
 
-    // Modify query based on the fields provided
-    queryInput = {
-      ...queryInput,
-      KeyConditionExpression: '#name = :name and #version = :version',
-      ExpressionAttributeNames: { '#name': 'Name', '#version': 'Version' },
-      ExpressionAttributeValues: { ':name': { S: name }, ':version': { S: version } },
-    };
+    // Add condition for version if provided
+    if (version) {
+      queryInput.KeyConditionExpression += ' and #version = :version';
+      queryInput.ExpressionAttributeNames!['#version'] = 'Version';
+      queryInput.ExpressionAttributeValues![':version'] = { S: version };
+    }
 
     const response = await dynamoClient.send(new QueryCommand(queryInput));
     return response.Items || [];
@@ -189,7 +213,10 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
     if (!validationResult.success) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: 'Invalid request data', details: validationResult.error.errors }),
+        body: JSON.stringify({
+          error: 'Invalid request data',
+          details: validationResult.error.errors,
+        }),
       };
     }
 
@@ -203,23 +230,32 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
     }
     const offset = offsetResult.data;
 
-    // Fetch packages from DynamoDB based on the validated data
+    // Fetch packages based on queries
     const results = await Promise.all(
-      validationResult.data.map(({ Name, Version }) =>
-        fetchPackagesFromDynamo(Name, Version, offset)
-      )
+      validationResult.data.map(async ({ Name, Version }) => {
+        if (Name === '*') {
+          // Wildcard: Return all packages
+          return fetchAllPackages(offset);
+        } else {
+          // Specific query by name and optional version
+          return fetchPackagesByNameAndVersion(Name, Version, offset);
+        }
+      })
     );
+
+    // Flatten and format results
+    const formattedResults = results.flat().map((item) => ({
+      Name: item.Name.S,
+      Version: item.Version?.S,
+      ID: item.ID.S,
+    }));
 
     // Return the result with paginated offset
     return {
       statusCode: 200,
       body: JSON.stringify({
-        packages: results.flat().map(item => ({
-          Name: item.Name.S,
-          Version: item.Version.S,
-          ID: item.ID.S, // Extracting the ID from DynamoDB response
-        })),
-        offset: offset + results.flat().length, // Adjust pagination offset
+        packages: formattedResults,
+        offset: offset + formattedResults.length, // Adjust pagination offset
       }),
     };
   } catch (error) {
