@@ -306,7 +306,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             };
 
         } catch (error) {
-            // Log error details for debugging
+            // Log the error details for debugging
             console.error('Error during package processing:', error);
 
             // Check error name to determine the status code
