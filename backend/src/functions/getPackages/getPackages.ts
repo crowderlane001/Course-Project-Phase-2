@@ -254,8 +254,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
     return {
       statusCode: 200,
       body: JSON.stringify({
-        packages: formattedResults,
-        offset: offset + formattedResults.length, // Adjust pagination offset
+        formattedResults
       }),
     };
   } catch (error) {
