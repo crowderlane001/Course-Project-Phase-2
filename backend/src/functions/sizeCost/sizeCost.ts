@@ -23,13 +23,6 @@ class PackageNotFoundError extends Error {
     }
 }
 
-class AuthenticationError extends Error {
-    constructor(message: string = 'Authentication failed due to invalid or missing AuthenticationToken') {
-        super(message);
-        this.name = 'AuthenticationError'; // Ensure the name is set correctly
-    }
-}
-
 // Cache to store already calculated costs to prevent redundant calculations
 const costCache: { [key: string]: number } = {};
 
@@ -262,16 +255,6 @@ async function calculateTotalCost(packageId: string, seenPackages: Set<string>):
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
-        // Check authentication
-        const authHeader = event.headers['X-Authorization'] || event.headers['x-authorization'];
-        if (!authHeader) {
-            console.warn('Missing X-Authorization header');
-            return {
-                statusCode: 403,
-                body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken' })
-            };
-        }
-
         // Get and validate package ID
         const packageId = event.pathParameters?.id;
         const dependencyParam = event.queryStringParameters?.dependency;
