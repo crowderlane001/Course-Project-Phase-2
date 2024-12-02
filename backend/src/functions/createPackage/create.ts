@@ -278,11 +278,11 @@ async function storePackageMetadata(
     const item: { 
       [key: string]: AttributeValue 
     } = {
-      'id': { S: metadata.ID },
-      'name': { S: metadata.Name },
-      'version': { S: metadata.Version },
+      'ID': { S: metadata.ID },
+      'Name': { S: metadata.Name },
+      'Version': { S: metadata.Version },
       's3Key': { S: s3Key },
-      'url': { S: data.URL },
+      'URL': { S: data.URL },
       'createdAt': { S: timestamp },
       'updatedAt': { S: timestamp }
     };
