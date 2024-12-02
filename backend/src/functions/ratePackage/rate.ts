@@ -34,8 +34,12 @@ Schema:
       in: header
       required: true
 */
+
+//id-index: global secondary index name
+//ID: name of column in dynamodb
+//id: name of packagequery parameter
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { main } from "./src/index";
 
@@ -44,6 +48,7 @@ const client = new DynamoDBClient({});
 const dynamo = DynamoDBDocumentClient.from(client);
 
 const TABLE_NAME = "PackageRegistry";
+const GSI_NAME = "id-index"; // Replace with your actual GSI name if different
 
 // Custom error class for better error handling
 class PackageRegistryError extends Error {
@@ -64,7 +69,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     }
 
     // Validate path parameter for package ID
-    const packageId = event.pathParameters?.id;
+    const packageId = event.pathParameters?.id; // API input uses 'id'
     if (!packageId) {
       throw new PackageRegistryError("Package ID is missing in the request", 400);
     }
@@ -75,23 +80,31 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       throw new PackageRegistryError("Authentication failed: Missing AuthenticationToken", 403);
     }
 
-    // Fetch the package from DynamoDB
-    const { Item } = await dynamo.send(
-      new GetCommand({
+    // Query the package from DynamoDB using the GSI
+    const { Items } = await dynamo.send(
+      new QueryCommand({
         TableName: TABLE_NAME,
-        Key: { id: packageId },
+        IndexName: GSI_NAME,
+        KeyConditionExpression: "#ID = :id",
+        ExpressionAttributeNames: {
+          "#ID": "ID", // Map the GSI key
+        },
+        ExpressionAttributeValues: {
+          ":id": packageId,
+        },
       })
     );
 
-    if (!Item) {
+    if (!Items || Items.length === 0) {
       throw new PackageRegistryError(`Package with ID '${packageId}' does not exist`, 404);
     }
 
-    if(!Item.URL) {
+    const item = Items[0]; // Assuming one record per ID
+    if (!item.URL) {
       throw new PackageRegistryError("The package URL is missing", 500);
     }
 
-    const metrics = await main(Item.URL);
+    const metrics = await main(item.URL);
 
     // Check if metrics are available for the package
     if (!metrics) {
@@ -102,7 +115,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     await dynamo.send(
       new UpdateCommand({
         TableName: TABLE_NAME,
-        Key: { id: packageId },
+        Key: { Name: item.Name, Version: item.Version }, // Replace with actual primary key
         UpdateExpression: "SET #metrics = :metrics",
         ExpressionAttributeNames: {
           "#metrics": "metrics",
