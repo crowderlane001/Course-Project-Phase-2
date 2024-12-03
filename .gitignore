@@ -33,6 +33,7 @@ node_modules
 *.txt
 repos/
 phase2.yaml
+*/zipper.sh
 
 
 !*/*/requirements.txt
