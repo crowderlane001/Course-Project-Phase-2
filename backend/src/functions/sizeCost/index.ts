@@ -4,7 +4,7 @@ import { S3Client, GetObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s
 import { DynamoDBClient, QueryCommand, ScanCommand } from '@aws-sdk/client-dynamodb';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import * as unzipper from 'unzipper'; // Correct namespace import
+import * as unzipper from 'unzipper'; // Correct namespace impor
 import * as stream from 'stream';
 import { promisify } from 'util';
 

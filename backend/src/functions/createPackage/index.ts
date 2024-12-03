@@ -407,7 +407,7 @@ export async function handler(
       }
     }
     else{
-      //get package.json infromatioin, 
+      //get package.json infromation
       const zipBuffer = Buffer.from(content, 'base64');
       packageInfo = await readPackageFromZip(zipBuffer);
     }

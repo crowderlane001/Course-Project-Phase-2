@@ -12,7 +12,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   try {
     console.log('Starting bulk deletion process');
     console.log('hellossewew');
-    // First, scan DynamoDB table to get all items
+    // First, scan DynamoDB table to get all item
     const scanParams = {
       TableName: TABLE_NAME
     };

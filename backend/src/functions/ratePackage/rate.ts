@@ -11,7 +11,7 @@ Schema:
                 $ref: '#/components/schemas/PackageRating'
           description: Return the rating. Only use this if each metric was computed
             successfully.
-        400:
+        400
           description: There is missing field(s) in the PackageID
         403:
           description: Authentication failed due to invalid or missing AuthenticationToken.

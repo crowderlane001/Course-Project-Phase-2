@@ -83,7 +83,11 @@ jobs:
               npx tsc
               
               # Create deployment package
-              zip -r ${folder}_deploy.zip index.js node_modules/
+              if [[ "$folder" == "ratePackage" ]]; then
+                zip -r ${folder}_deploy.zip . -x "*.ts" -x "package-lock.json" -x "zipper.sh"
+              else
+                zip -r ${folder}_deploy.zip index.js node_modules/
+              fi
 
               
               # Deploy to AWS Lambda

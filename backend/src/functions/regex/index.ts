@@ -93,7 +93,7 @@
 // description: "Unique ID for use with the /package/{id} endpoint."
 // example: "123567192081501"
 // type: string
-// pattern: '^[a-zA-Z0-9\-]+$'
+// pattern: '^[a-zA-Z0-9\-]+$
 
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, ScanCommand } from "@aws-sdk/lib-dynamodb";

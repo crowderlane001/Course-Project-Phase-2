@@ -12,7 +12,7 @@ check if its already there
 check the package originally, make sure it was uploaded by content / url like before
 get all versions of the package
 check version numbers, if we can upload
-upload like normal after
+upload like normal afte
 
 */
 const PackageName = z.string().min(1);
