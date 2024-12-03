@@ -83,7 +83,7 @@ jobs:
               npx tsc
               
               # Create deployment package
-              zip -r ${folder}_deploy.zip ${folder}/index.js node_modules/
+              zip -r ${folder}_deploy.zip index.js node_modules/
 
               
               # Deploy to AWS Lambda
@@ -93,6 +93,7 @@ jobs:
               
               # Cleanup
               rm ${folder}_deploy.zip
-              rm -rf $folder/dist
+              cd ..
+
             fi
           done
