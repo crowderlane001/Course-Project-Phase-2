@@ -85,17 +85,15 @@
 
 // PackageName:
 // description: |-
-//   Name of a package.
+//   Name of a package
 
 //   - Names should only use typical "keyboard" characters.
 //   - The name "*" is reserved. See the `/packages` API for its meaning.
 // type: string
-
-// PackageID:
 // description: "Unique ID for use with the /package/{id} endpoint."
 // example: "123567192081501"
 // type: string
-// pattern: '^[a-zA-Z0-9\-]+$'
+// pattern: '^[a-zA-Z0-9\-]+$
 
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, ScanCommand } from "@aws-sdk/lib-dynamodb";
@@ -163,7 +161,7 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
         // Respond with the filtered items
         return {
             statusCode: 200,
-            body: filteredItems, // Return filteredItems directly
+            body: JSON.stringify(filteredItems) // Return filteredItems directly
         };
     } catch (error) {
         console.error("Error processing request:", error);

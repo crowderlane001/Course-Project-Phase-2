@@ -11,15 +11,13 @@ const BUCKET_NAME = "storage-phase-2";
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   try {
     console.log('Starting bulk deletion process');
-    
-    // First, scan DynamoDB table to get all items
+    console.log('hellossewew');
+    // First, scan DynamoDB table to get all ite
     const scanParams = {
       TableName: TABLE_NAME
     };
-    
     let items: any[] = [];
     let lastEvaluatedKey: any = undefined;
-    
     // Paginate through all items in DynamoDB
     do {
       const scanCommand = new ScanCommand({

@@ -4,7 +4,7 @@ import { S3Client, GetObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s
 import { DynamoDBClient, QueryCommand, ScanCommand } from '@aws-sdk/client-dynamodb';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import * as unzipper from 'unzipper'; // Correct namespace import
+import * as unzipper from 'unzipper'; // Correct namespace impo
 import * as stream from 'stream';
 import { promisify } from 'util';
 
@@ -14,7 +14,6 @@ const s3Client = new S3Client({});
 const dynamoDb = new DynamoDBClient({});
 const TABLE_NAME = "PackageRegistry";
 const BUCKET_NAME = "storage-phase-2";
-
 // Custom Error Classes
 class PackageNotFoundError extends Error {
     constructor(message: string = 'Package not found') {
@@ -267,7 +266,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
                 body: JSON.stringify({ message: 'There is missing field(s) in the PackageID or it is formed improperly, or is invalid.' })
             };
         }
-
         // Validate packageId format
         if (!isValidPackageID(packageId)) {
             console.warn(`Invalid packageId format: ${packageId}`);

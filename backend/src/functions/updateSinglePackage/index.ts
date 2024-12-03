@@ -7,12 +7,12 @@ import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import { Buffer } from 'buffer';
 import axios from 'axios';
 /*
-Take in id via url, take in package schema, meta and data
+Take in id via url, take in package schema, meta and dat
 check if its already there
 check the package originally, make sure it was uploaded by content / url like before
 get all versions of the package
 check version numbers, if we can upload
-upload like normal after
+upload like normal afte
 
 */
 const PackageName = z.string().min(1);
@@ -226,7 +226,6 @@ async function getPackageById(packageId: string) {
   };
   
   console.log('DynamoDB Query Parameters:', JSON.stringify(params, null, 2));
-  
   try {
     const command = new QueryCommand(params);
     const result = await dynamoClient.send(command);

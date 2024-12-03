@@ -407,11 +407,10 @@ export async function handler(
       }
     }
     else{
-      //get package.json infromatioin, 
+      //get package.json infromatio
       const zipBuffer = Buffer.from(content, 'base64');
       packageInfo = await readPackageFromZip(zipBuffer);
     }
-
     if (!packageInfo || !packageInfo.name) {
       return {
         statusCode: 500,
@@ -425,7 +424,6 @@ export async function handler(
       ID: randomUUID()
       // ID: generatePackageId(packageInfo.name, packageInfo.version)
     };
-
     // Store package content and metadata
     // ... (rest of your existing code)
 
