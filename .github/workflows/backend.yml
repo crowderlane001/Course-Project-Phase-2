@@ -83,9 +83,8 @@ jobs:
               npx tsc
               
               # Create deployment package
-              cd dist
-              cp -r ../node_modules .
-              zip -r ../../${folder}_deploy.zip .
+              zip -r ${folder}_deploy.zip ${folder}/index.js node_modules/
+
               
               # Deploy to AWS Lambda
               cd ../..
