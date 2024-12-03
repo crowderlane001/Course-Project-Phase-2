@@ -1,5 +1,5 @@
 import { ApiResponse, GraphQLResponse } from './types';
-import { runWorker } from './index';
+import { runWorker } from './indexSRC';
 import { Metrics, WorkerResult } from './types'
 import { clone } from 'isomorphic-git';
 import * as fs from 'fs';

@@ -41,7 +41,7 @@ Schema:
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { main } from "./src/index";
+import { main } from "./src/indexSRC";
 
 // Initialize DynamoDB client
 const client = new DynamoDBClient({});
