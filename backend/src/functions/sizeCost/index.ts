@@ -14,7 +14,6 @@ const s3Client = new S3Client({});
 const dynamoDb = new DynamoDBClient({});
 const TABLE_NAME = "PackageRegistry";
 const BUCKET_NAME = "storage-phase-2";
-
 // Custom Error Classes
 class PackageNotFoundError extends Error {
     constructor(message: string = 'Package not found') {

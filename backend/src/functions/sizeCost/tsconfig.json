@@ -1,22 +1,24 @@
 {
   "compilerOptions": {
-    "target": "es2015",
-    "module": "commonjs",
-    "lib": ["es2015"],
+    "target": "ES2017",                                
+    "lib": ["dom"],
+    "module": "commonjs",                               
     "moduleResolution": "node",
-    "outDir": "./dist",
+    "baseUrl": "./",
     "rootDir": "./",
+    "outDir": "./",
+    "resolveJsonModule": true,
     "strict": true,
     "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "typeRoots": [
-      "../../../node_modules/@types",
-      "./node_modules/@types"
-    ],
-    "types": ["jest"], 
+    "types": ["node"],
     "allowJs": true,
-    "sourceMap": true
+    "noImplicitAny": true,
+    "paths": {
+      "*": ["node_modules/*"]
+    }
   },
-  "include": ["./**/*.ts"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["*.ts", "**/*.ts"],
+  "exclude": ["node_modules"]
 }

@@ -226,7 +226,6 @@ async function getPackageById(packageId: string) {
   };
   
   console.log('DynamoDB Query Parameters:', JSON.stringify(params, null, 2));
-  
   try {
     const command = new QueryCommand(params);
     const result = await dynamoClient.send(command);

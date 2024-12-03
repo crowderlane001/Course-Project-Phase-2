@@ -18,7 +18,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     };
     let items: any[] = [];
     let lastEvaluatedKey: any = undefined;
-    
     // Paginate through all items in DynamoDB
     do {
       const scanCommand = new ScanCommand({

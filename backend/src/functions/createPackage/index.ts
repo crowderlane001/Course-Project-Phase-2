@@ -411,7 +411,6 @@ export async function handler(
       const zipBuffer = Buffer.from(content, 'base64');
       packageInfo = await readPackageFromZip(zipBuffer);
     }
-
     if (!packageInfo || !packageInfo.name) {
       return {
         statusCode: 500,
