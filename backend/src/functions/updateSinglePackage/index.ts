@@ -7,7 +7,7 @@ import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import { Buffer } from 'buffer';
 import axios from 'axios';
 /*
-Take in id via url, take in package schema, meta and data
+Take in id via url, take in package schema, meta and dat
 check if its already there
 check the package originally, make sure it was uploaded by content / url like before
 get all versions of the package
