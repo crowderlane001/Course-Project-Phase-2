@@ -87,7 +87,6 @@ jobs:
 
               
               # Deploy to AWS Lambda
-              cd ../..
               aws lambda update-function-code \
                 --function-name "${function_map[$folder]}" \
                 --zip-file fileb://${folder}_deploy.zip
