@@ -198,6 +198,7 @@ async function fetchPackagesByNameAndVersion(
 
 // Lambda Handler
 export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  console.log('Received event:', JSON.stringify(event));
   try {
     // Validate request body
     if (!event.body) {
@@ -209,6 +210,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     const body = JSON.parse(event.body);
     const validationResult = FetchPackagesSchema.safeParse(body);
+    console.log('Parsed body:', JSON.stringify(body));
 
     if (!validationResult.success) {
       return {
@@ -249,19 +251,22 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       Version: item.Version?.S,
       ID: item.ID.S,
     }));
+    console.log('Formatted results:', JSON.stringify(formattedResults));
 
     // Return the result with paginated offset
     return {
       statusCode: 200,
-      body: JSON.stringify({
-        formattedResults
-      }),
+      body: JSON.stringify(formattedResults),
     };
   } catch (error) {
     console.error('Error processing request:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Internal server error', details: (error as Error).message }),
+      body: JSON.stringify({ 
+        error: 'Internal server errorings', 
+        details: (error as Error).message,
+        stack: (error as Error).stack 
+      }),
     };
   }
 }

@@ -11,15 +11,15 @@ const BUCKET_NAME = "storage-phase-2";
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   try {
     console.log('Starting bulk deletion process');
-
+    
     // First, scan DynamoDB table to get all items
     const scanParams = {
       TableName: TABLE_NAME
     };
-
+    
     let items: any[] = [];
     let lastEvaluatedKey: any = undefined;
-
+    
     // Paginate through all items in DynamoDB
     do {
       const scanCommand = new ScanCommand({
@@ -34,10 +34,10 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       
       lastEvaluatedKey = scanResult.LastEvaluatedKey;
     } while (lastEvaluatedKey);
-
+    
     console.log(`Found ${items.length} items to delete`);
-
-    // Delete all objects from S3
+    
+    // Delete all objects from S3 and DynamoDB
     const deletionPromises = items.map(async (item) => {
       try {
         // Delete from S3 if s3Key exists
@@ -47,31 +47,34 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             Key: item.s3Key
           };
           await s3Client.send(new DeleteObjectCommand(deleteS3Params));
+          console.log(`Deleted S3 object: ${item.s3Key}`);
         }
-
-        // Delete from DynamoDB
+        
+        // Delete from DynamoDB using Name (partition key) and Version (sort key)
         const deleteDynamoParams = {
           TableName: TABLE_NAME,
           Key: marshall({
-            id: item.id
-          })
+            Name: item.Name,    // Partition key
+            Version: item.Version  // Sort key
+          }, { removeUndefinedValues: true })
         };
+        
         await dynamodb.send(new DeleteItemCommand(deleteDynamoParams));
-
-        return item.id;
+        console.log(`Deleted DynamoDB item: ${item.Name}@${item.Version}`);
+        return `${item.Name}@${item.Version}`;
       } catch (error) {
-        console.error(`Error deleting item ${item.id}:`, error);
+        console.error(`Error deleting item ${item.Name}@${item.Version}:`, error);
         return null;
       }
     });
-
+    
     // Wait for all deletions to complete
     const results = await Promise.allSettled(deletionPromises);
     
     // Count successful and failed deletions
     const successful = results.filter(r => r.status === 'fulfilled' && r.value).length;
     const failed = results.filter(r => r.status === 'rejected' || !r.value).length;
-
+    
     return {
       statusCode: 200,
       body: JSON.stringify({
@@ -83,14 +86,14 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         }
       })
     };
-
   } catch (error) {
     console.error('Error in bulk deletion:', error);
     
     return {
       statusCode: 500,
       body: JSON.stringify({
-        message: 'Internal server error during bulk deletion'
+        message: 'Internal server error during bulk deletion',
+        error: error instanceof Error ? error.message : 'Unknown error'
       })
     };
   }
