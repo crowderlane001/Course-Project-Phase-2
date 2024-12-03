@@ -56,29 +56,45 @@ jobs:
             if [[ -n "${function_map[$folder]}" ]]; then
               echo "Processing changes in $folder..."
               
-              # Install dependencies for this function
               cd $folder
+              
+              # Install dependencies including TypeScript
               npm install
-              npm install --save-dev @types/node@18.17.1
+              npm install --save-dev typescript @types/node@18.17.1
+              
+              # Create tsconfig if it doesn't exist
+              if [ ! -f "tsconfig.json" ]; then
+                echo '{
+                  "compilerOptions": {
+                    "target": "ES2018",
+                    "module": "commonjs",
+                    "strict": true,
+                    "esModuleInterop": true,
+                    "skipLibCheck": true,
+                    "forceConsistentCasingInFileNames": true,
+                    "outDir": "./dist",
+                    "rootDir": "./",
+                    "types": ["node"]
+                  }
+                }' > tsconfig.json
+              fi
               
               # Compile TypeScript
               npx tsc
               
-              # Create deployment package with local node_modules
-              zip -r ../${folder}_deploy.zip . -x "*.ts"
+              # Create deployment package
+              cd dist
+              cp -r ../node_modules .
+              zip -r ../../${folder}_deploy.zip .
               
               # Deploy to AWS Lambda
-              cd ..
+              cd ../..
               aws lambda update-function-code \
                 --function-name "${function_map[$folder]}" \
                 --zip-file fileb://${folder}_deploy.zip
               
               # Cleanup
               rm ${folder}_deploy.zip
+              rm -rf $folder/dist
             fi
           done
-
-      - name: Clean up
-        working-directory: backend/src/functions
-        run: |
-          rm -f *_deploy.zip
