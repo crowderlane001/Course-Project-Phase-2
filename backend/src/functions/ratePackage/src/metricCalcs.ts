@@ -59,23 +59,22 @@ export async function calculateMetrics(owner: string, repo: string, token: strin
     const netScore_Latency = parseFloat(((end - begin) / 1000).toFixed(3))
     
     const metrics: Metrics = {
-        URL: inputURL,
-        NetScore: netScore,
-        NetScore_Latency: netScore_Latency,
-        RampUp: rampUp,
-        RampUp_Latency: rampUpLatency,
-        Correctness: correctness,
-        Correctness_Latency: correctnessLatency,
         BusFactor: busFactor,
-        BusFactor_Latency: busFactorLatency,
+        BusFactorLatency: busFactorLatency,
+        Correctness: correctness,
+        CorrectnessLatency: correctnessLatency,
+        RampUp: rampUp,
+        RampUpLatency: rampUpLatency,
         ResponsiveMaintainer: responsiveness,
-        ResponsiveMaintainer_Latency: responsivenessLatency,
-        License: license,
-        License_Latency: licenseLatency,
-        PinnedDependencies: pinnedDeps,  // New metric
-        PinnedDependencies_Latency: pinnedDepsLatency,
-        ReviewedCode: reviewedCode,       // New metric
-        ReviewedCode_Latency: reviewedCodeLatency
+        ResponsiveMaintainerLatency: responsivenessLatency,
+        LicenseScore: license,
+        LicenseScoreLatency: licenseLatency,
+        GoodPinningPractice: pinnedDepsLatency,
+        GoodPinningPracticeLatency: pinnedDeps,  // New metric
+        PullRequest: reviewedCode,       // New metric
+        PullRequestLatency: reviewedCodeLatency,
+        NetScore: netScore,
+        NetScoreLatency: netScore_Latency
     };
 
     return metrics;

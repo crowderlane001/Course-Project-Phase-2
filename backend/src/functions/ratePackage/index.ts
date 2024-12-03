@@ -35,6 +35,101 @@ Schema:
       required: true
 */
 
+// PackageRating:
+// description: |-
+//   Package rating (cf. Project 1).
+
+//   If the Project 1 that you inherited does not support one or more of the original properties, denote this with the value "-1".
+// required:
+// - RampUp
+// - Correctness
+// - BusFactor
+// - ResponsiveMaintainer
+// - LicenseScore
+// - GoodPinningPractice
+// - PullRequest
+// - NetScore
+// - RampUpLatency
+// - CorrectnessLatency
+// - BusFactorLatency
+// - ResponsiveMaintainerLatency
+// - LicenseScoreLatency
+// - GoodPinningPracticeLatency
+// - PullRequestLatency
+// - NetScoreLatency
+// type: object
+// properties:
+//   BusFactor:
+//     format: double
+//     description: ""
+//     type: number
+//   BusFactorLatency:
+//     format: double
+//     description: ""
+//     type: number
+//   Correctness:
+//     format: double
+//     description: ""
+//     type: number
+//   CorrectnessLatency:
+//     format: double
+//     description: ""
+//     type: number
+//   RampUp:
+//     format: double
+//     description: ""
+//     type: number
+//   RampUpLatency:
+//     format: double
+//     description: ""
+//     type: number
+//   ResponsiveMaintainer:
+//     format: double
+//     description: ""
+//     type: number
+//   ResponsiveMaintainerLatency:
+//     format: double
+//     description: ""
+//     type: number
+//   LicenseScore:
+//     format: double
+//     description: ""
+//     type: number
+//   LicenseScoreLatency:
+//     format: double
+//     description: ""
+//     type: number
+//   GoodPinningPractice:
+//     format: double
+//     description: "The fraction of its dependencies that are pinned to at least\
+//       \ a specific major+minor version, e.g. version 2.3.X of a package. (If\
+//       \ there are zero dependencies, they should receive a 1.0 rating. If there\
+//       \ are two dependencies, one pinned to this degree, then they should receive\
+//       \ a Â½ = 0.5 rating)."
+//     type: number
+//   GoodPinningPracticeLatency:
+//     format: double
+//     description: ""
+//     type: number
+//   PullRequest:
+//     format: double
+//     description: The fraction of project code that was introduced through pull
+//       requests with a code review.
+//     type: number
+//   PullRequestLatency:
+//     format: double
+//     description: The fraction of project code that was introduced through pull
+//       requests with a code review.
+//     type: number
+//   NetScore:
+//     format: double
+//     description: Scores calculated from other seven metrics.
+//     type: number
+//   NetScoreLatency:
+//     format: double
+//     description: Scores calculated from other seven metrics.
+//     type: number
+
 //id-index: global secondary index name
 //ID: name of column in dynamodb
 //id: name of packagequery parameter
@@ -132,11 +227,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        message: "Package rating retrieved successfully",
-        metrics: metrics,
-        details: metrics,
-      }),
+      body: metrics,
     };
   } catch (error) {
     console.error("Error:", error);
