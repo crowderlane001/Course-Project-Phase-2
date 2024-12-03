@@ -252,7 +252,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       ID: item.ID.S,
     }));
     console.log('Formatted results:', JSON.stringify(formattedResults));
-
+    // hi
     // Return the result with paginated offset
     return {
       statusCode: 200,

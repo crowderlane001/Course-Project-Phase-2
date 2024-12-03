@@ -90,7 +90,6 @@
 //   - Names should only use typical "keyboard" characters.
 //   - The name "*" is reserved. See the `/packages` API for its meaning.
 // type: string
-
 // PackageID:
 // description: "Unique ID for use with the /package/{id} endpoint."
 // example: "123567192081501"

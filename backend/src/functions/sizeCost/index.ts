@@ -267,7 +267,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
                 body: JSON.stringify({ message: 'There is missing field(s) in the PackageID or it is formed improperly, or is invalid.' })
             };
         }
-
         // Validate packageId format
         if (!isValidPackageID(packageId)) {
             console.warn(`Invalid packageId format: ${packageId}`);

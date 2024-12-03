@@ -16,7 +16,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const scanParams = {
       TableName: TABLE_NAME
     };
-    
     let items: any[] = [];
     let lastEvaluatedKey: any = undefined;
     

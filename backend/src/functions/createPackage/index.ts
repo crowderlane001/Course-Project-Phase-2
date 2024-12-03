@@ -425,7 +425,6 @@ export async function handler(
       ID: randomUUID()
       // ID: generatePackageId(packageInfo.name, packageInfo.version)
     };
-
     // Store package content and metadata
     // ... (rest of your existing code)
 
