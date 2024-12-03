@@ -161,7 +161,7 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
         // Respond with the filtered items
         return {
             statusCode: 200,
-            body: filteredItems, // Return filteredItems directly
+            body: JSON.stringify(filteredItems) // Return filteredItems directly
         };
     } catch (error) {
         console.error("Error processing request:", error);
