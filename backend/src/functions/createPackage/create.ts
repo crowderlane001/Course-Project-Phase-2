@@ -99,7 +99,7 @@ async function fetchGithubPackageInfo(url: string): Promise<{ name: string; vers
   const cleanRepoPath = repoPath.replace(/\.git$/, '');
   
   const githubNameApiUrl = `https://api.github.com/repos/${cleanRepoPath}`;
-  const githubVerApiUrl = `https://api.github.com/repos/${cleanRepoPath}/tags`;
+  const githubVerApiUrl = `https://api.github.com/repos/${cleanRepoPath}/releases`;
 
   const [nameResponse, versionResponse] = await Promise.all([
     axios.get(githubNameApiUrl),
@@ -111,7 +111,7 @@ async function fetchGithubPackageInfo(url: string): Promise<{ name: string; vers
 
   if (Array.isArray(versionResponse.data) && versionResponse.data.length > 0) {
     // Remove 'v' prefix if present and validate version format
-    version = versionResponse.data[0].name.replace(/^v/, '');
+    version = versionResponse.data[0].tag_name.replace(/^v/, '');
     if (!/^\d+\.\d+\.\d+/.test(version)) {
       version = '1.0.0';
     }
@@ -121,17 +121,6 @@ async function fetchGithubPackageInfo(url: string): Promise<{ name: string; vers
 }
 
 
-// Helper function to store package content in S3
-async function storePackageContent(id: string, content: string): Promise<string> {
-  const key = `packages/${id}`;
-  await s3Client.send(new PutObjectCommand({
-    Bucket: BUCKET_NAME,
-    Key: key,
-    Body: Buffer.from(content, 'base64'),
-    ContentType: 'application/zip'
-  }));
-  return key;
-}
   // const tmpDir = '/tmp';
   // const zipPath = path.join(tmpDir, `${packageId}.zip`);
 
@@ -169,94 +158,135 @@ async function storePackageContent(id: string, content: string): Promise<string>
   }
 
   async function downloadAndStorePackage(url: string, content: string, packageId: string, isZip: boolean): Promise<{s3Key: string, base64Content: string}> {
-    try {
-      let downloadUrl: string;
-      let packageData: Buffer;
-      let base64Content: string;
+    console.log('Starting downloadAndStorePackage with:', {
+        url,
+        packageId,
+        isZip,
+        contentLength: content?.length || 0
+    });
 
-      if (isZip){
-        base64Content = content;
-        packageData = Buffer.from(content, 'base64');
-      }
-      else{
-        if (url.includes('npmjs.com')) {
-          // Extract package name from NPM URL
-          const packageName = url.split('/package/')[1];
-          if (!packageName) {
-            throw new Error('Invalid NPM URL format');
-          }
-    
-          // First, get package metadata from NPM registry
-          const registryResponse = await axios.get(
-            `https://registry.npmjs.org/${packageName}`
-          );
-    
-          // Get the latest version's tarball URL
-          const latestVersion = registryResponse.data['dist-tags'].latest;
-          downloadUrl = registryResponse.data.versions[latestVersion].dist.tarball;
-    
-          // Download the tarball
-          const response = await axios({
-            method: 'get',
-            url: downloadUrl,
-            responseType: 'arraybuffer',
-            headers: {
-              'Accept': 'application/x-gzip',
-              'User-Agent': 'AWS-Lambda'
-            }
-          });
-    
-          packageData = Buffer.from(response.data);
-          base64Content = packageData.toString('base64');
-        } else if (url.includes('github.com')) {
-          // Handle GitHub URLs as before
-          downloadUrl = url.replace('github.com', 'api.github.com/repos')
-                          .replace(/\.git$/, '')
-                          + '/zipball/master';
-    
-          const response = await axios({
-            method: 'get',
-            url: downloadUrl,
-            responseType: 'arraybuffer',
-            headers: {
-              'Accept': 'application/vnd.github.v3+json',
-              'User-Agent': 'AWS-Lambda'
-            }
-          });
-    
-          packageData = Buffer.from(response.data);
-          base64Content = packageData.toString('base64');
-        } else {
-          throw new Error('Unsupported package source URL');
+    try {
+        let downloadUrl: string;
+        let packageData: Buffer;
+        let base64Content: string;
+
+        if (isZip) {
+            console.log('Processing pre-uploaded zip content');
+            base64Content = content;
+            packageData = Buffer.from(content, 'base64');
+            console.log('Successfully decoded base64 zip content, size:', packageData.length);
         }
-      }
-  
-      // Generate S3 key
-      const fileExtension = url.includes('npmjs.com') ? 'tgz' : 'zip';
-      const s3Key = `${packageId}.${fileExtension}`;
-  
-      // Upload to S3
-      await s3Client.send(new PutObjectCommand({
-        Bucket: BUCKET_NAME,
-        Key: s3Key,
-        Body: packageData,
-        ContentType: url.includes('npmjs.com') ? 'application/gzip' : 'application/zip',
-        Metadata: {
-          'source-url': url
+        else {
+            if (url.includes('npmjs.com')) {
+                console.log('Processing NPM package');
+                const packageName = url.split('/package/')[1];
+                console.log('Extracted package name:', packageName);
+
+                if (!packageName) {
+                    console.error('Package name extraction failed for URL:', url);
+                    throw new Error('Invalid NPM URL format');
+                }
+
+                console.log('Fetching package metadata from NPM registry for:', packageName);
+                const registryResponse = await axios.get(
+                    `https://registry.npmjs.org/${packageName}`
+                );
+                console.log('NPM registry response received, status:', registryResponse.status);
+
+                const latestVersion = registryResponse.data['dist-tags'].latest;
+                downloadUrl = registryResponse.data.versions[latestVersion].dist.tarball;
+                console.log('Latest version:', latestVersion);
+                console.log('Download URL:', downloadUrl);
+
+                console.log('Downloading tarball...');
+                const response = await axios({
+                    method: 'get',
+                    url: downloadUrl,
+                    responseType: 'arraybuffer',
+                    headers: {
+                        'Accept': 'application/x-gzip',
+                        'User-Agent': 'AWS-Lambda'
+                    }
+                });
+                console.log('Tarball download complete, status:', response.status);
+
+                packageData = Buffer.from(response.data);
+                base64Content = packageData.toString('base64');
+                console.log('Package data size:', packageData.length);
+                console.log('Base64 content length:', base64Content.length);
+
+            } else if (url.includes('github.com')) {
+                console.log('Processing GitHub repository');
+                downloadUrl = url.replace('github.com', 'api.github.com/repos')
+                                .replace(/\.git$/, '')
+                                + '/zipball';
+                console.log('GitHub API URL:', downloadUrl);
+
+                console.log('Downloading GitHub repository...');
+                const response = await axios({
+                    method: 'get',
+                    url: downloadUrl,
+                    responseType: 'arraybuffer',
+                    headers: {
+                        'Accept': 'application/vnd.github.v3+json',
+                        'User-Agent': 'AWS-Lambda'
+                    }
+                });
+                console.log('GitHub download complete, status:', response.status);
+
+                packageData = Buffer.from(response.data);
+                base64Content = packageData.toString('base64');
+                console.log('Package data size:', packageData.length);
+                console.log('Base64 content length:', base64Content.length);
+
+            } else {
+                console.error('Unsupported URL format:', url);
+                throw new Error('Unsupported package source URL');
+            }
         }
-      }));
-  
-      console.log(`Successfully stored package content at ${s3Key}`);
-      return {
-        s3Key,
-        base64Content
-      };
-  
+
+        const fileExtension = url.includes('npmjs.com') ? 'tgz' : 'zip';
+        const s3Key = `${packageId}.${fileExtension}`;
+        console.log('Generated S3 key:', s3Key);
+
+        console.log('Initiating S3 upload...');
+        await s3Client.send(new PutObjectCommand({
+            Bucket: BUCKET_NAME,
+            Key: s3Key,
+            Body: packageData,
+            ContentType: url.includes('npmjs.com') ? 'application/gzip' : 'application/zip',
+            Metadata: {
+                'source-url': url
+            }
+        }));
+        console.log('S3 upload complete for key:', s3Key);
+
+        return {
+            s3Key,
+            base64Content
+        };
+
     } catch (error) {
-      console.error('Error in downloadAndStorePackage:', error);
-      throw new Error(`Failed to download and store package: ${(error as Error).message}`);
+        console.error('Error in downloadAndStorePackage:', {
+            error: error as Error,
+            message: (error as Error).message,
+            stack: (error as Error).stack,
+            url,
+            packageId,
+            isZip
+        });
+
+        if (axios.isAxiosError(error)) {
+            console.error('Axios error details:', {
+                response: error.response?.data,
+                status: error.response?.status,
+                headers: error.response?.headers
+            });
+        }
+
+        throw new Error(`Failed to download and store package: ${(error as Error).message}`);
     }
-  }
+}
 
 // Helper function to store package metadata in DynamoDB
 async function storePackageMetadata(
@@ -322,6 +352,10 @@ export async function handler(
     const body = JSON.parse(event.body);
     const data = PackageDataSchema.safeParse(body);
 
+    console.log('~~~~~~~~~~~~~~~~~~~~~~~Data~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
+    console.log(data.data);
+
+
     if (!data.success) {
       return {
         statusCode: 400,
@@ -333,6 +367,8 @@ export async function handler(
     let url = ""
     if (data.data.URL){
       url = data.data.URL;
+      console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~URL~~~~~~~~~~~~~~~~~~~~');
+      console.log(url);
     }
     else if (data.data.Content){
       content = data.data.Content;

@@ -170,8 +170,7 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
         return {
             statusCode: 500,
             body: JSON.stringify({
-                message: "Internal server error.",
-                error: error.message,
+                message: "Internal server erroring."
             }),
         };
     }

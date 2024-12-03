@@ -5,10 +5,8 @@
     "zod": "^3.x"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.120"
-  },
-  "name": "regex",
-  "description": "This is a package meant to filter for packages matching the regex given.",
-  "version": "1.0.0",
-  "main": "regex.js"
+    "@types/aws-lambda": "^8.x",
+    "@types/node": "^18.17.1",
+    "typescript": "^5.x"
+  }
 }
