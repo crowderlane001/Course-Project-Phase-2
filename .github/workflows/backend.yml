@@ -1,63 +1,98 @@
-# name: Deploy Lambda CI/CD
+name: Deploy Lambda CI/CD
 
-# on:
-#   push:
-#     branches:
-#       - main
-#     # paths:
-#     #   - 'backend/src/functions/**'  # Only trigger on changes to Lambda function code
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/src/functions/**'
 
-# jobs:
-#   build-and-deploy:
-#     runs-on: ubuntu-latest
-#     permissions:
-#       id-token: write   # Required for AWS authentication
-#       contents: read    # Required to checkout code
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
 
-#       - name: Set up Node.js
-#         uses: actions/setup-node@v3
-#         with:
-#           node-version: '18'
-#           # cache: 'npm'
-#           # cache-dependency-path: backend/src/functions/package-lock.json
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-#       - name: Configure AWS Credentials
-#         uses: aws-actions/configure-aws-credentials@v4
-#         with:
-#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#           aws-region: ${{ secrets.AWS_REGION }}  # Add this to your GitHub secrets
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v41
+        with:
+          path: backend/src/functions
 
-#       - name: Clear NPM Cache
-#         run: npm cache clean --force
+      - name: Process changed Lambda functions
+        working-directory: backend/src/functions
+        run: |
+          declare -A function_map=(
+            ["createPackage"]="packageRegistry-createPackage"
+            ["getPackages"]="packageRegistry-getPackages"
+            ["getSinglePackage"]="packageRegistry-getSinglePackage"
+            ["ratePackage"]="packageRegistry-ratePackage"
+            ["regex"]="packageRegistry-regexPackage"
+            ["resetRegistry"]="packageRegistry-resetRegistry"
+            ["sizeCost"]="packageRegistry-sizeCost"
+            ["tracks"]="packageRegistry-listTracks"
+            ["updateSinglePackage"]="packageRegistry-updateSinglePackage"
+          )
 
-#       - name: Install dependencies 
-#         working-directory: backend/src/functions
-#         run: |
-#           npm install
-#           npm install zod@latest
-#           npm install typescript
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            folder=$(echo "$file" | cut -d'/' -f1)
+            
+            if [[ -n "${function_map[$folder]}" ]]; then
+              echo "Processing changes in $folder..."
+              
+              cd $folder
+              
+              # Install dependencies including TypeScript
+              npm install
+              npm install --save-dev typescript @types/node@18.17.1
+              
+              # Create tsconfig if it doesn't exist
+              if [ ! -f "tsconfig.json" ]; then
+                echo '{
+                  "compilerOptions": {
+                    "target": "ES2018",
+                    "module": "commonjs",
+                    "strict": true,
+                    "esModuleInterop": true,
+                    "skipLibCheck": true,
+                    "forceConsistentCasingInFileNames": true,
+                    "outDir": "./dist",
+                    "rootDir": "./",
+                    "types": ["node"]
+                  }
+                }' > tsconfig.json
+              fi
+              
+              # Compile TypeScript
+              npx tsc
+              
+              # Create deployment package
+              zip -r ${folder}_deploy.zip index.js node_modules/ */
+              
+              # Deploy to AWS Lambda
+              aws lambda update-function-code \
+                --function-name "${function_map[$folder]}" \
+                --zip-file fileb://${folder}_deploy.zip
+              
+              # Cleanup
+              rm ${folder}_deploy.zip
+              cd ..
 
-#       - name: Compile TypeScript
-#         working-directory: backend/src/functions/packages
-#         run: 
-#           npx tsc
-
-#       - name: Create deployment package
-#         working-directory: backend/src/functions
-#         run: |
-#           zip -r create_package.zip packages/create.js node_modules/
-
-#       - name: Update Lambda function
-#         run: |
-#           aws lambda update-function-code \
-#             --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \
-#             --zip-file fileb://backend/src/functions/create_package.zip
-
-#       # Optional: Clean up deployment package
-#       - name: Clean up
-#         run: rm backend/src/functions/create_package.zip
+            fi
+          done

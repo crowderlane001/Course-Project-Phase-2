@@ -23,6 +23,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+*.zip
 
 #previous team
 node_modules
@@ -32,6 +33,7 @@ node_modules
 *.txt
 repos/
 phase2.yaml
+*/zipper.sh
 
 
 !*/*/requirements.txt
