@@ -10,5 +10,10 @@ export const usePackageManager = () => {
         return () => unsubscribe();
     }, []);
 
-    return { packages, setPackages: packageManager.setPackages, setPackage: packageManager.setPackage, getPackage: packageManager.getPackage };
+    return {
+        packages,
+        setPackages: packageManager.setPackages.bind(packageManager),
+        setPackage: packageManager.setPackage.bind(packageManager),
+        getPackage: packageManager.getPackage.bind(packageManager)
+    };
 }
