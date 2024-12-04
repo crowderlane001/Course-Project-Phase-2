@@ -194,12 +194,34 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       throw new PackageRegistryError(`Package with ID '${packageId}' does not exist`, 404);
     }
 
-    const item = Items[0]; // Assuming one record per ID
-    if (!item.URL) {
-      throw new PackageRegistryError("The package URL is missing", 500);
-    }
+    var metrics = {
+      RampUp: -1,
+      Correctness: -1,
+      BusFactor: -1,
+      ResponsiveMaintainer: -1,
+      LicenseScore: -1,
+      GoodPinningPractice: -1,
+      PullRequest: -1,
+      NetScore: -1,
+      RampUpLatency: -1,
+      CorrectnessLatency: -1,
+      BusFactorLatency: -1,
+      ResponsiveMaintainerLatency: -1,
+      LicenseScoreLatency: -1,
+      GoodPinningPracticeLatency: -1,
+      PullRequestLatency: -1,
+      NetScoreLatency: -1,
+    };
 
-    const metrics = await main(item.URL);
+    const item = Items[0]; // Assuming one record per ID
+    if (item.URL) {
+      // Fetch metrics if URL is present
+      metrics = await main(item.URL);
+
+      if (!metrics) {
+        throw new PackageRegistryError("The package rating system choked on at least one of the metrics", 500);
+      }
+    }
 
     // Check if metrics are available for the package
     if (!metrics) {
@@ -229,7 +251,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS", // Allow HTTP methods
         "Access-Control-Allow-Headers": "Content-Type, Authorization", // Allow headers
       },
-      body: metrics,
+      body: JSON.stringify(metrics),
     };
   } catch (error) {
     console.error("Error:", error);
