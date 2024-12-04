@@ -450,7 +450,7 @@ export async function handler(
 
     // Store metadata in DynamoDB
     // await storePackageMetadata(metadata, data.data, s3Key);
-    await storePackageMetadata(metadata, { ...data.data, URL: data.data.URL || "" }, result.s3Key);
+    await storePackageMetadata(metadata, { ...data.data, URL: url || "" }, result.s3Key);
 
     let responseBody: any = {
       metadata,
