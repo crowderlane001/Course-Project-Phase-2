@@ -72,7 +72,7 @@ function generatePackageId(name: string, version: string): string {
 }
 
 // Helper function to fetch package info from npm
-async function fetchNpmPackageInfo(url: string): Promise<{ name: string; version: string }> {
+async function fetchNpmPackageInfo(url: string): Promise<{ name: string; version: string; URL: string}> {
   //name in url
   const packageName = url.split('/').pop();
   if (!packageName) {
@@ -84,12 +84,13 @@ async function fetchNpmPackageInfo(url: string): Promise<{ name: string; version
   
   return {
     name: response.data.name || packageName,
-    version: response.data['dist-tags']?.latest || '1.0.0'
+    version: response.data['dist-tags']?.latest || '1.0.0',
+    URL: url
   };
 }
 
 // Helper function to fetch package info from GitHub
-async function fetchGithubPackageInfo(url: string): Promise<{ name: string; version: string }> {
+async function fetchGithubPackageInfo(url: string): Promise<{ name: string; version: string; URL:string }> {
   const repoPath = url.split('github.com/')[1];
   if (!repoPath) {
     throw new Error('Could not extract repository path from URL');
@@ -116,8 +117,9 @@ async function fetchGithubPackageInfo(url: string): Promise<{ name: string; vers
       version = '1.0.0';
     }
   }
+  const URL = url;
 
-  return { name, version };
+  return { name, version, URL };
 }
 
 
@@ -150,9 +152,9 @@ async function fetchGithubPackageInfo(url: string): Promise<{ name: string; vers
 
       const name = packageJson.name;
       const version = packageJson.version;
-      const URL = packageJson.repository.url;
+      const URL = packageJson.repository?.url || "";
   
-      return { name, version, URL: URL ? URL : "" };
+      return { name, version, URL};
     } catch (error) {
       throw new Error(`Failed to read package.json: ${(error as Error).message}`);
     }
