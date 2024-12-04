@@ -1,7 +1,4 @@
-type Header = {
-    contentType: string;
-    authorization?: string;
-}
+export type Header = {}
 
 class API {
     baseURL: string;
@@ -12,7 +9,12 @@ class API {
 
     async get(path: string) {
         try {
-            const response = await fetch(`${this.baseURL}${path}`);
+            const response = await fetch(`${this.baseURL}${path}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
             return response.json();
         } catch (error) {
             console.error("Error fetching data: ", error);

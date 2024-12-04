@@ -19,22 +19,36 @@ import NotFound from "./pages/404";
 import Cookies from "js-cookie";
 import User from "./models/user-model";
 import SearchResults from "./pages/SearchResults";
+import { usePackageManager } from "./hooks/use-packagemanager";
+import API from "./api/api";
+import Package from "./models/package";
 
 
-function initialize(setUser: (user: User | null) => void) {
+function initialize(setUser: (user: User | null) => void, setPackages: (packages: Package[]) => void) {
   console.log("Initializing...");
   const cookie = Cookies.get("user");
   if (cookie) {
     const user: User = JSON.parse(cookie);
     setUser(user);
   }
+
+  const packagesApi = new API("https://med4k766h1.execute-api.us-east-1.amazonaws.com/dev");
+  packagesApi.post("/packages", [{ Name: "*" }])
+    .then((response) => {
+      const packages = response.map((pkg: any) => new Package(pkg.ID, pkg.Name, pkg.Version));
+      setPackages(packages);
+    })
+    .catch((error) => {
+      console.error("Error fetching packages: ", error);
+    });
 }
 
 function App() {
   const { setUser } = useUserManager();
+  const { setPackages } = usePackageManager();
   useEffect(() => {
-    initialize(setUser);
-  }, [setUser]);
+    initialize(setUser, setPackages);
+  }, []);
 
   return (
     <Router>
@@ -83,6 +97,7 @@ function AppContent() {
               <Route path="/members" element={user ? <Members /> : <RouteBlocker />} />
               <Route path="/analytics" element={user ? <Analytics /> : <RouteBlocker />} />
               <Route path="/packages/:id" element={user ? <PackageDetails /> : <RouteBlocker />} />
+              <Route path="/packages/results/:id" element={user ? <PackageDetails isResult /> : <RouteBlocker />} />
               <Route path="/search/:query" element={user ? <SearchResults /> : <RouteBlocker />} />
               <Route path="/search/:query/results/:id" element={user ? <PackageDetails isResult /> : <RouteBlocker />} />
               <Route path="*" element={<NotFound />} />

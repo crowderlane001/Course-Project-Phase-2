@@ -26,7 +26,7 @@ class PackageManager {
     }
 
     getPackages() {
-        return Array.from(this.packages.values());
+        return this.packages;
     }
 
     getPackage(id: string) {
