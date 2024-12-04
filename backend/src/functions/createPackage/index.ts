@@ -124,7 +124,7 @@ async function fetchGithubPackageInfo(url: string): Promise<{ name: string; vers
   // const tmpDir = '/tmp';
   // const zipPath = path.join(tmpDir, `${packageId}.zip`);
 
-  async function readPackageFromZip(zipBuffer: Buffer): Promise<{ name: string; version: string }> {
+  async function readPackageFromZip(zipBuffer: Buffer): Promise<{ name: string; version: string; URL: string }> {
     try {
       console.log('Zip buffer length:', zipBuffer.length);
       const directory = await unzipper.Open.buffer(zipBuffer);
@@ -144,14 +144,15 @@ async function fetchGithubPackageInfo(url: string): Promise<{ name: string; vers
       console.log('package.json content:', content.toString());
       const packageJson = JSON.parse(content.toString());
   
-      if (!packageJson.name || !packageJson.version) {
+      if (!packageJson.name || !packageJson.version ||packageJson.repository.url) {
         throw new Error('Invalid package.json: missing name or version');
       }
 
       const name = packageJson.name;
       const version = packageJson.version;
+      const URL = packageJson.repository.url;
   
-      return { name, version };
+      return { name, version, URL: URL ? URL : "" };
     } catch (error) {
       throw new Error(`Failed to read package.json: ${(error as Error).message}`);
     }
@@ -417,6 +418,7 @@ export async function handler(
         body: JSON.stringify({ error: 'Could not determine package name' })
       };
     }
+    
 
     const metadata = {
       Name: packageInfo.name,
@@ -438,6 +440,7 @@ export async function handler(
     let isZip = false;
     if (!url){
       isZip = true;
+      url = packageInfo.URL;
     }   
 
     //create separate for content
