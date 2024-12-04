@@ -72,7 +72,7 @@ function generatePackageId(name: string, version: string): string {
 }
 
 // Helper function to fetch package info from npm
-async function fetchNpmPackageInfo(url: string): Promise<{ name: string; version: string }> {
+async function fetchNpmPackageInfo(url: string): Promise<{ name: string; version: string; URL: string}> {
   //name in url
   const packageName = url.split('/').pop();
   if (!packageName) {
@@ -84,12 +84,13 @@ async function fetchNpmPackageInfo(url: string): Promise<{ name: string; version
   
   return {
     name: response.data.name || packageName,
-    version: response.data['dist-tags']?.latest || '1.0.0'
+    version: response.data['dist-tags']?.latest || '1.0.0',
+    URL: url
   };
 }
 
 // Helper function to fetch package info from GitHub
-async function fetchGithubPackageInfo(url: string): Promise<{ name: string; version: string }> {
+async function fetchGithubPackageInfo(url: string): Promise<{ name: string; version: string; URL:string }> {
   const repoPath = url.split('github.com/')[1];
   if (!repoPath) {
     throw new Error('Could not extract repository path from URL');
@@ -116,15 +117,16 @@ async function fetchGithubPackageInfo(url: string): Promise<{ name: string; vers
       version = '1.0.0';
     }
   }
+  const URL = url;
 
-  return { name, version };
+  return { name, version, URL };
 }
 
 
   // const tmpDir = '/tmp';
   // const zipPath = path.join(tmpDir, `${packageId}.zip`);
 
-  async function readPackageFromZip(zipBuffer: Buffer): Promise<{ name: string; version: string }> {
+  async function readPackageFromZip(zipBuffer: Buffer): Promise<{ name: string; version: string; URL: string }> {
     try {
       console.log('Zip buffer length:', zipBuffer.length);
       const directory = await unzipper.Open.buffer(zipBuffer);
@@ -150,8 +152,9 @@ async function fetchGithubPackageInfo(url: string): Promise<{ name: string; vers
 
       const name = packageJson.name;
       const version = packageJson.version;
+      const URL = packageJson.repository?.url || "";
   
-      return { name, version };
+      return { name, version, URL};
     } catch (error) {
       throw new Error(`Failed to read package.json: ${(error as Error).message}`);
     }
@@ -417,6 +420,7 @@ export async function handler(
         body: JSON.stringify({ error: 'Could not determine package name' })
       };
     }
+    
 
     const metadata = {
       Name: packageInfo.name,
@@ -438,6 +442,7 @@ export async function handler(
     let isZip = false;
     if (!url){
       isZip = true;
+      url = packageInfo.URL;
     }   
 
     //create separate for content
@@ -445,7 +450,7 @@ export async function handler(
 
     // Store metadata in DynamoDB
     // await storePackageMetadata(metadata, data.data, s3Key);
-    await storePackageMetadata(metadata, { ...data.data, URL: data.data.URL || "" }, result.s3Key);
+    await storePackageMetadata(metadata, { ...data.data, URL: url || "" }, result.s3Key);
 
     let responseBody: any = {
       metadata,
@@ -462,6 +467,11 @@ export async function handler(
 
     return {
       statusCode: 201,
+      headers: {
+        "Access-Control-Allow-Origin": "http://localhost:5173", // Allow requests from your frontend
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS", // Allow HTTP methods
+        "Access-Control-Allow-Headers": "Content-Type, Authorization", // Allow headers
+      },
       body: JSON.stringify(responseBody)
     };
 
