@@ -146,7 +146,7 @@ async function fetchGithubPackageInfo(url: string): Promise<{ name: string; vers
       console.log('package.json content:', content.toString());
       const packageJson = JSON.parse(content.toString());
   
-      if (!packageJson.name || !packageJson.version ||packageJson.repository.url) {
+      if (!packageJson.name || !packageJson.version) {
         throw new Error('Invalid package.json: missing name or version');
       }
 
