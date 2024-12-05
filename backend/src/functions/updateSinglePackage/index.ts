@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { boolean, z } from 'zod';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { DynamoDBClient, QueryCommand, PutItemCommand, GetItemCommand, AttributeValue } from '@aws-sdk/client-dynamodb';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
@@ -309,6 +309,8 @@ export async function handler(
     const packageId = event.pathParameters?.id;
 
     const body = JSON.parse(event.body);
+    console.log("Body!~~~~~~~!!!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    console.log(body);
     const newPackageData = PackageSchema.safeParse(body);
     
 
@@ -319,7 +321,7 @@ export async function handler(
       };
     }
     const newVersion = newPackageData.data.metadata.Version;
-
+    let checkURL = !!newPackageData.data.data.URL;
 
     if (!packageId || !newPackageData.data.metadata || !newVersion) {
       return {
@@ -342,13 +344,13 @@ export async function handler(
 
     const prevName = unitem.Name;
     const prevVersion = unitem.Version;
-    const prevURLCheck = unitem.URL;
+    // const prevURLCheck = unitem.URL;
 
-    let checkURL = false;
+    // let checkURL = false;
 
-    if (prevURLCheck){
-      checkURL = true;
-    }
+    // if (prevURLCheck){
+    //   checkURL = true;
+    // }
 
     //make sure new package is same name, different version, and same upload type
 
