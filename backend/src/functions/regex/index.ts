@@ -148,9 +148,21 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
             };
         }
 
-        const regex = new RegExp(pattern, "i"); // Create a case-insensitive regex
+        let regex: RegExp;
+        try {
+            regex = new RegExp(pattern, "i"); // Create a case-insensitive regex
+        } catch (err) {
+            console.error("Invalid regex pattern:", err);
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ message: "There is missing field(s) in the PackageRegEx or it is formed improperly, or is invalid" }),
+            };
+        }
 
         // Scan the table for all items using the DocumentClient
+
+        //backtracking in regex 400 where its bad
+
         const scanCommand = new ScanCommand({
             TableName: TABLE_NAME,
         });
