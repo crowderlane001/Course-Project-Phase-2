@@ -39,6 +39,7 @@ jobs:
         working-directory: backend/src/functions
         run: |
           declare -A function_map=(
+            ["authenticate"]="packageRegistry-authenticate"
             ["createPackage"]="packageRegistry-createPackage"
             ["getPackages"]="packageRegistry-getPackages"
             ["getSinglePackage"]="packageRegistry-getSinglePackage"
