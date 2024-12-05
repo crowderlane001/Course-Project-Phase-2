@@ -98,6 +98,7 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayEvent, Context } from "aws-lambda";
+import * as jwt from 'jsonwebtoken';
 const JWT_SECRET = '1b7e4f8a9c2d1e6m3k5p9q8r7t2y4x6zew';
 
 // Create a DynamoDB client instance

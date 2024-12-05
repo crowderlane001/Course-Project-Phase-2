@@ -1,7 +1,8 @@
 {
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.x",
-    "@aws-sdk/lib-dynamodb": "^3.x"
+    "@aws-sdk/lib-dynamodb": "^3.x",
+    "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.x",
