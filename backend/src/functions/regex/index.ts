@@ -177,23 +177,41 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
             };
         }
 
-        // Filter items and enforce PackageMetadata schema
-        const filteredItems = scanResult.Items.filter((item) => {
+        const filteredItems = [];
+        const timeout = 1000; // 1 second timeout for regex operations
+    
+        for (const item of scanResult.Items) {
             const name = item.Name || "";
-            return regex.test(name);
-        }).map((item) => {
-            if (!item.Name || !item.Version || !item.ID) {
-                console.warn(
-                    `Skipping invalid item: ${JSON.stringify(item)}`
-                );
-                return null; // Exclude invalid items
+            let match = false;
+    
+            try {
+                const start = Date.now();
+                match = regex.test(name);
+                const duration = Date.now() - start;
+    
+                if (duration > timeout) {
+                    throw new Error("Regex operation timed out");
+                }
+            } catch (err) {
+                console.error("Regex operation failed:", err);
+                return {
+                    statusCode: 400,
+                    body: JSON.stringify({ message: "Regex operation failed due to backtracking or excessive length" }),
+                };
             }
-            return {
-                Name: item.Name, // Expected to exist
-                Version: item.Version, // Expected to exist
-                ID: item.ID, // Expected to exist
-            };
-        }).filter((item) => item !== null); // Remove nulls
+    
+            if (match) {
+                if (!item.Name || !item.Version || !item.ID) {
+                    console.warn(`Skipping invalid item: ${JSON.stringify(item)}`);
+                    continue; // Exclude invalid items
+                }
+                filteredItems.push({
+                    Name: item.Name, // Expected to exist
+                    Version: item.Version, // Expected to exist
+                    ID: item.ID, // Expected to exist
+                });
+            }
+        }
 
         // Respond with the filtered items
         return {
