@@ -12,7 +12,7 @@ const JWT_SECRET = '1b7e4f8a9c2d1e6m3k5p9q8r7t2y4x6zew';
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
 
-  const token = event.headers['X-Authorization'];
+  const token = event.headers['X-Authorization']?.split(' ')[1];
 
   if (!token) {
     return {
@@ -37,7 +37,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
   try {
     console.log('Starting bulk deletion process');
-    console.log('hellossewew');
     // First, scan DynamoDB table to get all ite
     const scanParams = {
       TableName: TABLE_NAME
