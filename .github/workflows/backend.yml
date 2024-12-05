@@ -39,6 +39,7 @@ jobs:
         working-directory: backend/src/functions
         run: |
           declare -A function_map=(
+            ["authenticate"]="packageRegistry-authenticate"
             ["createPackage"]="packageRegistry-createPackage"
             ["getPackages"]="packageRegistry-getPackages"
             ["getSinglePackage"]="packageRegistry-getSinglePackage"
@@ -61,23 +62,6 @@ jobs:
               # Install dependencies including TypeScript
               npm install
               npm install --save-dev typescript @types/node@18.17.1
-              
-              # Create tsconfig if it doesn't exist
-              if [ ! -f "tsconfig.json" ]; then
-                echo '{
-                  "compilerOptions": {
-                    "target": "ES2018",
-                    "module": "commonjs",
-                    "strict": true,
-                    "esModuleInterop": true,
-                    "skipLibCheck": true,
-                    "forceConsistentCasingInFileNames": true,
-                    "outDir": "./dist",
-                    "rootDir": "./",
-                    "types": ["node"]
-                  }
-                }' > tsconfig.json
-              fi
               
               # Compile TypeScript
               npx tsc
