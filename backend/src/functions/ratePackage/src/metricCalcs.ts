@@ -8,14 +8,13 @@ import * as path from 'path';
 
 
 export const cloner = async (repoUrl: string, localDir: string): Promise<null> => {
-    await clone({
+    clone({
         fs,
         http,
         dir: localDir,
         url: repoUrl,
         singleBranch: true,
-        depth: 1,
-        
+        depth: 1
     });
 
     return null;
@@ -24,13 +23,13 @@ export const cloner = async (repoUrl: string, localDir: string): Promise<null> =
 // Modifying the calculateMetrics function to include the new metrics
 export async function calculateMetrics(owner: string, repo: string, token: string, repoURL: string, repoData: ApiResponse<GraphQLResponse | null>, inputURL: string): Promise<Metrics | null> {
     await cloner(repoURL, path.join('/tmp'));
-    
+
     const busFactorWorker = runWorker(owner, repo, token, repoURL, repoData, "busFactor");
     const correctnessWorker = runWorker(owner, repo, token, repoURL, repoData, "correctness");
     const rampUpWorker = runWorker(owner, repo, token, repoURL, repoData, "rampUp");
     const responsivenessWorker = runWorker(owner, repo, token, repoURL, repoData, "responsiveness");
-    const licenseWorker = runWorker(owner, repo, token, repoURL, repoData, "license");
-    const pinnedDepsWorker = runWorker(owner, repo, token, repoURL, repoData, "pinnedDeps");
+    const licenseWorker = runWorker(owner, repo, token, repoURL, repoData, "license"); // needs repoURL
+    const pinnedDepsWorker = runWorker(owner, repo, token, repoURL, repoData, "pinnedDeps"); // needs repoURL
     const reviewedCodeWorker = runWorker(owner, repo, token, repoURL, repoData, "reviewedCode");
 
     const results = await Promise.all([busFactorWorker, correctnessWorker, rampUpWorker, responsivenessWorker, licenseWorker, pinnedDepsWorker, reviewedCodeWorker]);

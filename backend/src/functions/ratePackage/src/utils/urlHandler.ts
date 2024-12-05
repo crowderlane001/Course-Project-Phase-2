@@ -51,35 +51,42 @@ export const extractGithubOwnerAndRepo = (repoURL: string): [string, string] | n
 };
 
 export async function getRepoDetails(token: string, inputURL: string): Promise<[string, string, string]> {
+    // Remove 'git+' prefix if it exists
+    let sanitizedURL = inputURL.startsWith("git+") ? inputURL.slice(4) : inputURL;
+
     // Extract hostname (www.npm.js or github.com or null)
-    const hostname = extractDomainFromUrl(inputURL);
+    const hostname = extractDomainFromUrl(sanitizedURL);
     if (!hostname || (hostname !== "www.npmjs.com" && hostname !== "github.com")) {
+        console.log('Invalid URL');
         process.exit(1);
     }
 
     let repoURL: string = "";
 
-    // If url is npm, fetch the github repo
+    // If URL is npm, fetch the GitHub repo
     if (hostname === "www.npmjs.com") {
-        const npmPackageName = extractNpmPackageName(inputURL);
+        const npmPackageName = extractNpmPackageName(sanitizedURL);
         if (!npmPackageName) {
+            console.log('Invalid npm package name');
             process.exit(1);
         }
 
-        // Fetch the Github repo url from npm package
+        // Fetch the GitHub repo URL from npm package
         const npmResponse = await fetchGithubUrlFromNpm(npmPackageName);
         if (!npmResponse?.data) {
+            console.log('Unable to fetch GitHub URL from npm');
             process.exit(1);
         }
 
         repoURL = npmResponse.data;
     } else {
-        // URL must be github, so use it directly
-        repoURL = inputURL;
+        // URL must be GitHub, so use it directly
+        repoURL = sanitizedURL;
     }
 
     const repoDetails = extractGithubOwnerAndRepo(repoURL);
     if (!repoDetails) {
+        console.log('Could not extract owner and repo from URL');
         process.exit(1);
     }
 

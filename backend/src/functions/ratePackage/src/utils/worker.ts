@@ -1,19 +1,19 @@
 const { parentPort } = require('worker_threads');
 const { calcBusFactor, calcCorrectness, calcLicense, calcPinnedDependencies, calcRampUp, calcReviewedCode, calcResponsiveness} = require('../imports');
-import { GraphQLResponse } from './../types';
+// import { GraphQLResponse } from './../types';
 
-// Define the structure of params
-interface Params {
-    owner: string;
-    repo: string;
-    token: string;
-    repoURL: string;
-    repoData: GraphQLResponse; // Replace with a more specific type if available
-    metric: string;
-}
+// // Define the structure of params
+// interface Params {
+//     owner: string;
+//     repo: string;
+//     token: string;
+//     repoURL: string;
+//     repoData: GraphQLResponse; // Replace with a more specific type if available
+//     metric: string;
+// }
 
 // Worker function that computes something
-parentPort?.on('message', async (params: Params) => {
+parentPort?.on('message', async (params: any) => {
     const begin = Date.now();
 
     // PARSE PARAMETERS

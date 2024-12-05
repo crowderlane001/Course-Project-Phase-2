@@ -164,16 +164,16 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     }
 
     // Validate path parameter for package ID
-    const packageId = event.pathParameters?.id; // API input uses 'id'
+    const packageId = event.pathParameters?.id; // API input uses 'id' Note: must be path parameter since the id is specified in path
     if (!packageId) {
       throw new PackageRegistryError("Package ID is missing in the request", 400);
     }
 
-    // Validate headers for X-Authorization
-    const authToken = event.headers["X-Authorization"];
-    if (!authToken) {
-      throw new PackageRegistryError("Authentication failed: Missing AuthenticationToken", 403);
-    }
+    // // Validate headers for X-Authorization
+    // const authToken = event.headers["X-Authorization"];
+    // if (!authToken) {
+    //   throw new PackageRegistryError("Authentication failed: Missing AuthenticationToken", 403);
+    // }
 
     // Query the package from DynamoDB using the GSI
     const { Items } = await dynamo.send(
@@ -194,36 +194,32 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       throw new PackageRegistryError(`Package with ID '${packageId}' does not exist`, 404);
     }
 
-    var metrics = {
-      RampUp: -1,
-      Correctness: -1,
-      BusFactor: -1,
-      ResponsiveMaintainer: -1,
-      LicenseScore: -1,
-      GoodPinningPractice: -1,
-      PullRequest: -1,
-      NetScore: -1,
-      RampUpLatency: -1,
-      CorrectnessLatency: -1,
-      BusFactorLatency: -1,
-      ResponsiveMaintainerLatency: -1,
-      LicenseScoreLatency: -1,
-      GoodPinningPracticeLatency: -1,
-      PullRequestLatency: -1,
-      NetScoreLatency: -1,
-    };
+    // var metrics = {
+    //   RampUp: -1,
+    //   Correctness: -1,
+    //   BusFactor: -1,
+    //   ResponsiveMaintainer: -1,
+    //   LicenseScore: -1,
+    //   GoodPinningPractice: -1,
+    //   PullRequest: -1,
+    //   NetScore: -1,
+    //   RampUpLatency: -1,
+    //   CorrectnessLatency: -1,
+    //   BusFactorLatency: -1,
+    //   ResponsiveMaintainerLatency: -1,
+    //   LicenseScoreLatency: -1,
+    //   GoodPinningPracticeLatency: -1,
+    //   PullRequestLatency: -1,
+    //   NetScoreLatency: -1,
+    // };
 
     const item = Items[0]; // Assuming one record per ID
-    if (item.URL) {
-      // Fetch metrics if URL is present
-      metrics = await main(item.URL);
-
-      if (!metrics) {
-        throw new PackageRegistryError("The package rating system choked on at least one of the metrics", 500);
-      }
+    if (!item.URL) {
+      throw new PackageRegistryError("The package URL is missing", 500);
     }
 
-    // Check if metrics are available for the package
+    const metrics = await main(item.URL);
+
     if (!metrics) {
       throw new PackageRegistryError("The package rating system choked on at least one of the metrics", 500);
     }
