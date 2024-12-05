@@ -302,7 +302,7 @@ export async function handler(
     if (!event.body) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ description: 'There1 is missing field(s) in the PackageData or it is formed improperly (e.g. Content and URL ar both set)' })
+        body: JSON.stringify({ description: 'There is missing field(s) in the PackageID or it is formed improperly, or is invalid.' })
       };
     }
 
@@ -316,7 +316,7 @@ export async function handler(
     if (!newPackageData.success) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ description: 'There2 is missing field(s) in the PackageData or it is formed improperly (e.g. Content and URL ar both set)' })
+        body: JSON.stringify({ description: 'There is missing field(s) in the PackageID or it is formed improperly, or is invalid.' })
       };
     }
     const newVersion = newPackageData.data.metadata.Version;
@@ -335,7 +335,7 @@ export async function handler(
       return {
         statusCode: 404,
         body: JSON.stringify({
-          message: 'Package not found'
+          message: 'Package does not exist.'
         })
       };
     }
@@ -357,7 +357,7 @@ export async function handler(
       return {
         statusCode: 404,
         body: JSON.stringify({
-          message: 'Package not found'
+          message: 'Package does not exist.'
         })
       };
     }
@@ -368,7 +368,7 @@ export async function handler(
     if (!canUpload) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ description: 'There is missing field(s) in the PackageData or it is formed improperly (e.g. Content and URL ar both set)' })
+        body: JSON.stringify({ description: 'There is missing field(s) in the PackageID or it is formed improperly, or is invalid.' })
       };
     }
     const packageInfo = newPackageData.data;
@@ -385,8 +385,8 @@ export async function handler(
     const exists = await checkPackageExists(metadata.Name, metadata.Version);
     if (exists) {
       return {
-        statusCode: 409,
-        body: JSON.stringify({ error: 'Package already exists' })
+        statusCode: 404,
+        body: JSON.stringify({ error: 'There is missing field(s) in the PackageID or it is formed improperly, or is invalid.' })
       };
     }
 

@@ -118,7 +118,7 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
             return {
                 statusCode: 400,
                 body: JSON.stringify({
-                    message: "'RegEx' is required for searching.",
+                    message: "There is missing field(s) in the PackageRegEx or it is formed improperly, or is invalid",
                 }),
             };
         }
@@ -136,7 +136,9 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
         if (!scanResult.Items || scanResult.Items.length === 0) {
             return {
                 statusCode: 404,
-                body: JSON.stringify([]), // Return an empty array if no packages are found
+                body: JSON.stringify({
+                    message: "No package found under this regex.",
+                }), // Return an empty array if no packages are found
             };
         }
 
