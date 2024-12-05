@@ -313,7 +313,6 @@ export async function handler(
     console.log(body);
     const newPackageData = PackageSchema.safeParse(body);
     
-
     if (!newPackageData.success) {
       return {
         statusCode: 400,
