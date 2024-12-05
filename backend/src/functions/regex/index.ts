@@ -98,6 +98,7 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayEvent, Context } from "aws-lambda";
+const JWT_SECRET = '1b7e4f8a9c2d1e6m3k5p9q8r7t2y4x6zew';
 
 // Create a DynamoDB client instance
 const dynamoClient = new DynamoDBClient({ region: "us-east-1" });
@@ -109,6 +110,29 @@ const documentClient = DynamoDBDocumentClient.from(dynamoClient);
 const TABLE_NAME = "PackageRegistry";
 
 export const handler = async (event: APIGatewayEvent, context: Context) => {
+    const token = event.headers['X-Authorization']?.split(' ')[1];
+
+    if (!token) {
+      return {
+        statusCode: 403,
+        body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+      };
+    }
+  
+    try {
+      // Verify the JWT
+      const decoded = jwt.verify(token, JWT_SECRET);
+  
+      console.log('Token is valid:', decoded);
+    } catch (err) {
+      console.error('Token verification failed:', err);
+  
+      return {
+        statusCode: 403,
+        body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+      };
+    }
+
     try {
         // Extract the search pattern from the event body (looking for 'RegEx')
         const requestBody = event.body ? JSON.parse(event.body) : {};
@@ -136,9 +160,7 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
         if (!scanResult.Items || scanResult.Items.length === 0) {
             return {
                 statusCode: 404,
-                body: JSON.stringify({
-                    message: "No package found under this regex.",
-                }), // Return an empty array if no packages are found
+                body: JSON.stringify([]), // Return an empty array if no packages are found
             };
         }
 
