@@ -95,7 +95,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       }
     }
 
-    // Generate JWT token
+    // Generate JWT token ds
     const token = jwt.sign({
       name: request.User.name,
       isAdmin: request.User.isAdmin,
