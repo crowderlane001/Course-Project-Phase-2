@@ -402,7 +402,7 @@ export async function handler(
     // await storePackageMetadata(metadata, data.data, s3Key);
     await storePackageMetadata(metadata, { ...packageInfo.data, URL: packageInfo.data.URL || "" }, result.s3Key);
     return {
-      statusCode: 201,
+      statusCode: 200,
       body: JSON.stringify( {
         message: "Version is updated."
       })
