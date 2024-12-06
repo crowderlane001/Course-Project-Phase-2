@@ -403,6 +403,12 @@ export async function handler(
     await storePackageMetadata(metadata, { ...packageInfo.data, URL: packageInfo.data.URL || "" }, result.s3Key);
     return {
       statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "http://localhost:5173", // Allow requests from your frontend
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS", // Allow HTTP methods
+        "Access-Control-Allow-Headers": "Content-Type, Authorization", // Allow headers
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify( {
         message: "Version is updated."
       })
