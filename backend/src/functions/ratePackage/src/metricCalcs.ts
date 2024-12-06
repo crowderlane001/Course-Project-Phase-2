@@ -5,17 +5,40 @@ import { clone } from 'isomorphic-git';
 import * as fs from 'fs';
 import http from 'isomorphic-git/http/node';
 import * as path from 'path';
-
+import { exec } from 'child_process';
 
 export const cloner = async (repoUrl: string, localDir: string): Promise<null> => {
+    // // Check if the directory exists and delete it if it does (force behavior)
+    // try {
+    //     // Read all files and subdirectories inside the given directory
+    //     const files = fs.readdirSync(localDir);
+
+    //     // Iterate over each file/subdirectory
+    //     for (const file of files) {
+    //         const currentPath = path.join(localDir, file);
+    //         const stat = fs.statSync(currentPath);
+
+    //         // If it's a directory, delete the directory (non-recursive)
+    //         if (stat.isDirectory()) {
+    //             fs.rmdirSync(currentPath); // Remove the empty directory
+    //         } else {
+    //             // If it's a file, delete it
+    //             fs.unlinkSync(currentPath);
+    //         }
+    //     }
+    //     console.log(`Contents of directory ${localDir} have been deleted.`);
+    // } catch (err) {
+    //     console.error(`Error deleting contents of ${localDir}:`, err);
+    // }
+    exec(`rm -rf /tmp/*`);
+    
     await clone({
         fs,
         http,
         dir: localDir,
         url: repoUrl,
         singleBranch: true,
-        depth: 1,
-        
+        depth: 1
     });
 
     return null;
@@ -24,13 +47,13 @@ export const cloner = async (repoUrl: string, localDir: string): Promise<null> =
 // Modifying the calculateMetrics function to include the new metrics
 export async function calculateMetrics(owner: string, repo: string, token: string, repoURL: string, repoData: ApiResponse<GraphQLResponse | null>, inputURL: string): Promise<Metrics | null> {
     await cloner(repoURL, path.join('/tmp'));
-    
+
     const busFactorWorker = runWorker(owner, repo, token, repoURL, repoData, "busFactor");
     const correctnessWorker = runWorker(owner, repo, token, repoURL, repoData, "correctness");
     const rampUpWorker = runWorker(owner, repo, token, repoURL, repoData, "rampUp");
     const responsivenessWorker = runWorker(owner, repo, token, repoURL, repoData, "responsiveness");
-    const licenseWorker = runWorker(owner, repo, token, repoURL, repoData, "license");
-    const pinnedDepsWorker = runWorker(owner, repo, token, repoURL, repoData, "pinnedDeps");
+    const licenseWorker = runWorker(owner, repo, token, repoURL, repoData, "license"); // needs repoURL
+    const pinnedDepsWorker = runWorker(owner, repo, token, repoURL, repoData, "pinnedDeps"); // needs repoURL
     const reviewedCodeWorker = runWorker(owner, repo, token, repoURL, repoData, "reviewedCode");
 
     const results = await Promise.all([busFactorWorker, correctnessWorker, rampUpWorker, responsivenessWorker, licenseWorker, pinnedDepsWorker, reviewedCodeWorker]);

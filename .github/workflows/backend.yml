@@ -59,6 +59,12 @@ jobs:
               
               cd $folder
               
+              # Add .env file only for ratePackage
+              if [[ "$folder" == "ratePackage" ]]; then
+                echo "Adding .env file with GitHub token for ratePackage..."
+                echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" > .env
+              fi
+
               # Install dependencies including TypeScript
               npm install
               npm install --save-dev typescript @types/node@18.17.1
@@ -66,16 +72,16 @@ jobs:
               # Compile TypeScript
               npx tsc
               
-              # Create deployment package
-              zip -r ${folder}_deploy.zip index.js node_modules/ */
-              
+              # Create deployment package including .env if it exists
+              zip -r ${folder}_deploy.zip index.js node_modules/ .env */ -x "*.ts"
+
               # Deploy to AWS Lambda
               aws lambda update-function-code \
                 --function-name "${function_map[$folder]}" \
                 --zip-file fileb://${folder}_deploy.zip
               
               # Cleanup
-              rm ${folder}_deploy.zip
+              rm -f ${folder}_deploy.zip .env
               cd ..
 
             fi
