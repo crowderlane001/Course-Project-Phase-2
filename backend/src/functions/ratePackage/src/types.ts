@@ -53,11 +53,6 @@ export interface PullRequestNode {
     createdAt: string;
     updatedAt: string;
     closedAt: string | null;
-    reviews: ReviewNode;
-}
-
-export interface ReviewNode {
-    totalCount: number;
 }
 
 export interface PullRequests {

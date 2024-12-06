@@ -5,10 +5,34 @@ import { clone } from 'isomorphic-git';
 import * as fs from 'fs';
 import http from 'isomorphic-git/http/node';
 import * as path from 'path';
-
+import { exec } from 'child_process';
 
 export const cloner = async (repoUrl: string, localDir: string): Promise<null> => {
-    clone({
+    // // Check if the directory exists and delete it if it does (force behavior)
+    // try {
+    //     // Read all files and subdirectories inside the given directory
+    //     const files = fs.readdirSync(localDir);
+
+    //     // Iterate over each file/subdirectory
+    //     for (const file of files) {
+    //         const currentPath = path.join(localDir, file);
+    //         const stat = fs.statSync(currentPath);
+
+    //         // If it's a directory, delete the directory (non-recursive)
+    //         if (stat.isDirectory()) {
+    //             fs.rmdirSync(currentPath); // Remove the empty directory
+    //         } else {
+    //             // If it's a file, delete it
+    //             fs.unlinkSync(currentPath);
+    //         }
+    //     }
+    //     console.log(`Contents of directory ${localDir} have been deleted.`);
+    // } catch (err) {
+    //     console.error(`Error deleting contents of ${localDir}:`, err);
+    // }
+    exec(`rm -rf /tmp/*`);
+    
+    await clone({
         fs,
         http,
         dir: localDir,

@@ -169,12 +169,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       throw new PackageRegistryError("Package ID is missing in the request", 400);
     }
 
-    // // Validate headers for X-Authorization
-    // const authToken = event.headers["X-Authorization"];
-    // if (!authToken) {
-    //   throw new PackageRegistryError("Authentication failed: Missing AuthenticationToken", 403);
-    // }
-
     // Query the package from DynamoDB using the GSI
     const { Items } = await dynamo.send(
       new QueryCommand({
@@ -218,11 +212,16 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       throw new PackageRegistryError("The package URL is missing", 500);
     }
 
+    console.log(item.URL);
+
     const metrics = await main(item.URL);
 
     if (!metrics) {
       throw new PackageRegistryError("The package rating system choked on at least one of the metrics", 500);
     }
+
+    console.log("Metrics calculated successfully");
+
 
     // Update the metrics in the DynamoDB table
     await dynamo.send(
@@ -235,9 +234,11 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         },
         ExpressionAttributeValues: {
           ":metrics": metrics,
-        },
+        }
       })
     );
+    
+    console.log("Metrics updated successfully");
 
     // Return a successful response with the package rating
     return {

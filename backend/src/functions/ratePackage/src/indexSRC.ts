@@ -58,6 +58,7 @@ export const main = async (url: string): Promise<any> => { // Specify the return
         console.log('Unable to fetch repository data');
         return null; // Return null or an appropriate error value
     }
+    console.log('Fetched repository data');
 
     // Calculate all metrics (concurrently)
     const metrics = await calculateMetrics(owner, repo, token, repoURL, repoData, inputURL);
@@ -65,6 +66,7 @@ export const main = async (url: string): Promise<any> => { // Specify the return
         console.log('Unable to calculate metrics');
         return null; // Return null if metrics calculation fails
     }
+    console.log('Calculated metrics:', metrics);
 
     return metrics; // Return the calculated metrics at the end
 };
