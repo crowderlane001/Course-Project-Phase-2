@@ -5,11 +5,24 @@ import { clone } from 'isomorphic-git';
 import * as fs from 'fs';
 import http from 'isomorphic-git/http/node';
 import * as path from 'path';
-import { exec } from 'child_process';
 
-export const cloner = async (repoUrl: string, localDir: string): Promise<null> => {
+const listAllFoldersInTmp = (dir: string): void => {
+    const items = fs.readdirSync(dir, { withFileTypes: true });
+    const directories = items.filter(item => item.isDirectory()).map(item => item.name);
+    console.log("Folders in /tmp:");
+    directories.forEach(folder => {
+        console.log(folder);
+    });
+};
+
+export const cloner = async (repoUrl: string, repo: string): Promise<null> => {
     const tmpDir = '/tmp';
-    const fullPath = path.join(tmpDir, localDir);  // Combine /tmp with the provided localDir
+    if (!fs.existsSync(tmpDir)) {
+        fs.mkdirSync(tmpDir);
+    }
+    listAllFoldersInTmp(tmpDir);
+
+    const fullPath = path.join(tmpDir, repo);  // Combine /tmp with the provided localDir
 
     try {
         // Check if the directory exists (do not delete or alter contents)
@@ -30,6 +43,7 @@ export const cloner = async (repoUrl: string, localDir: string): Promise<null> =
             singleBranch: true,
             depth: 1
         });
+        listAllFoldersInTmp(tmpDir);
         
         console.log(`Repository cloned into ${fullPath}`);
     } catch (err) {
@@ -41,7 +55,7 @@ export const cloner = async (repoUrl: string, localDir: string): Promise<null> =
 
 // Modifying the calculateMetrics function to include the new metrics
 export async function calculateMetrics(owner: string, repo: string, token: string, repoURL: string, repoData: ApiResponse<GraphQLResponse | null>, inputURL: string): Promise<Metrics | null> {
-    await cloner(repoURL, path.join('/tmp'));
+    await cloner(repoURL, repo);
 
     const busFactorWorker = runWorker(owner, repo, token, repoURL, repoData, "busFactor");
     const correctnessWorker = runWorker(owner, repo, token, repoURL, repoData, "correctness");
@@ -87,13 +101,15 @@ export async function calculateMetrics(owner: string, repo: string, token: strin
         ResponsiveMaintainerLatency: responsivenessLatency,
         LicenseScore: license,
         LicenseScoreLatency: licenseLatency,
-        GoodPinningPractice: pinnedDepsLatency,
-        GoodPinningPracticeLatency: pinnedDeps,  // New metric
+        GoodPinningPractice: pinnedDeps,
+        GoodPinningPracticeLatency: pinnedDepsLatency,  // New metric
         PullRequest: reviewedCode,       // New metric
         PullRequestLatency: reviewedCodeLatency,
         NetScore: netScore,
         NetScoreLatency: netScore_Latency
     };
+
+    console.log(metrics)
 
     return metrics;
 }

@@ -41,6 +41,6 @@ parentPort?.on('message', async (params: any) => {
     // RETURN SOMETHING
     parentPort?.postMessage({
         score: result,
-        latency: (end - begin) / 1000 // in seconds
+        latency: (end - begin) / 1000.0 // in seconds
     });
 });

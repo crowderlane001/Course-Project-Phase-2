@@ -18,10 +18,12 @@ export function calcCorrectness(repoData: ApiResponse<GraphQLResponse | null>): 
     const ClosedIssues = repoData.data?.data.repository.closedIssues;
 
     if(!OpenIssues){
+        console.log("No open issues found");
         return 1.0;
     }
 
     if (!ClosedIssues) {
+        console.log("No closed issues found");
         return 0.0;
     }
 
