@@ -311,6 +311,8 @@ export async function handler(
     const body = JSON.parse(event.body);
     console.log("Body!~~~~~~~!!!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     console.log(body);
+    console.log("Body!~~~~~~~!!!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+
     const newPackageData = PackageSchema.safeParse(body);
     
     if (!newPackageData.success) {
@@ -393,9 +395,11 @@ export async function handler(
       ID: 'Leo' + packageInfo.metadata.ID +'98'
     };
 
-    console.log("~~~~~~~~~~~~~~~~~~~~~~Stored ID~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    console.log("~~~~~~~~~~~~~~~~~~~~~~Stored Meta~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    console.log(packageInfo.metadata.Name)
+    console.log(packageInfo.metadata.Version)
     console.log(packageInfo.metadata.ID)
-    console.log("~~~~~~~~~~~~~~~~~~~~~~Stored ID~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    console.log("~~~~~~~~~~~~~~~~~~~~~~Stored Meta~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
 
     // Store package content and metadata
