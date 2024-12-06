@@ -152,7 +152,7 @@ async function fetchGithubPackageInfo(url: string): Promise<{ name: string; vers
 
       const name = packageJson.name;
       const version = packageJson.version;
-      const URL = packageJson.repository?.url || "";
+      let URL = packageJson.repository?.url || "";
 
       if (URL == "git://github.com/dominictarr/JSONStream.git"){
         URL = "https://github.com/dominictarr/JSONStream.git"
