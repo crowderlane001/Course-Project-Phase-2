@@ -14,6 +14,10 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import Page from "@/components/user-defined/page";
+import { useEffect, useState } from "react";
+import API from "@/api/api";
+import { useUserManager } from "@/hooks/use-usermanager";
+import Spinner from "@/components/user-defined/spinner";
 
 type SearchResult = {
     id: string;
@@ -99,13 +103,40 @@ function ResultsTable({ columns, data, query }: ResultsTableProps) {
 
 function SearchResults() {
     const { query } = useParams<{ query: string }>();
-    const testResult: SearchResult = { id: '1', title: 'Test', description: 'Test description', score: 30 };
+    const { user } = useUserManager();
+    const regex = new RegExp(query || '', 'i');
+    console.log(regex);
+    const [loading, setLoading] = useState(true);
+    
+    const loadResults = async () => {
+        setLoading(true);
+        const api = new API("https://med4k766h1.execute-api.us-east-1.amazonaws.com/dev");
+
+        const data = {
+            "RegEx": regex
+        }
+
+        const headers =  {
+            "Content-Type": "application/json",
+            "X-Authorization": user?.token
+        }
+
+        const response = await api.post("/package/byRegEx", data, headers);
+        console.log(response);
+        setLoading(false);
+    }
+
+    useEffect(() => {
+        loadResults();
+    }, [query]);
+
+    useEffect(() => {}, [loading]);
 
     return (
         <div>
             <Page>
                 <h2 className="bold">Search Results for "{query}"</h2>
-                <ResultsTable columns={columns} query={query} data={[testResult]} />
+                {loading ? <div className="w-full flex flex-1 flex-row justify-center"><Spinner /></div> :  <ResultsTable columns={columns} query={query} data={[]} />}
             </Page>
         </div>
     );

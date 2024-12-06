@@ -14,20 +14,26 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import API from "@/api/api";
+import { useEffect, useRef, useState } from "react"
+import { toast } from "@/hooks/use-toast"
+import Spinner from "./spinner"
+import { DialogClose } from "@radix-ui/react-dialog"
+import { useUserManager } from "@/hooks/use-usermanager"
 
 const FormSchema = z.object({
-    name: z.string(),
     file: z.instanceof(File).refine((file) => file.type === "application/zip", {
         message: "File must be a ZIP archive",
     }),
 })
 
 export function UploadFormZip() {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const closeRef = useRef<HTMLButtonElement>(null);
+    const { user } = useUserManager();
 
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
         defaultValues: {
-            name: "",
             file: undefined,
         },
     });
@@ -42,41 +48,51 @@ export function UploadFormZip() {
     };
 
     async function onSubmit(data: z.infer<typeof FormSchema>) {
-        const { name, file } = data;
-        const base64File = await convertFileToBase64(file);
-        const formData = new FormData();
-        formData.append("Name", name);
-        formData.append("Content", base64File);
+        setIsSubmitting(true);
+        const { file } = data;
+        const base64File: string = await convertFileToBase64(file);
+        const base64String = base64File.replace(/^data:application\/zip;base64,/, "");
+
+        const formData: object = {
+            "Content": base64String,
+            "debloat": false,
+            "JSProgram": "",
+        };
+
+        console.log(formData);
 
         const api = new API("https://med4k766h1.execute-api.us-east-1.amazonaws.com/dev");
-        try {
-            const response = await api.post("/package", formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
-            console.log(response);
-        } catch (error) {
-            console.error("Error uploading package: ", error);
+
+        const headers = {
+            "Content-Type": "application/json",
+            "X-Authorization": user?.token
         }
+
+        api.post("/package", formData, headers)
+            .then(() => {
+                toast({
+                    title: "Success",
+                    description: "Package uploaded successfully",
+                })
+                setIsSubmitting(false);
+                if (closeRef.current) {
+                    closeRef.current.click();
+                }
+            })
+            .catch(() => {
+                toast({
+                    title: "Error",
+                    description: "An error occurred while uploading the package",
+                })
+                setIsSubmitting(false);
+            });
     }
+
+    useEffect(() => {}, [isSubmitting]);
 
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="w-2/3 space-y-6">
-                <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Package Name</FormLabel>
-                            <FormControl>
-                                <Input className="text-base" placeholder="Enter package name" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
                 <FormField
                     control={form.control}
                     name="file"
@@ -90,7 +106,10 @@ export function UploadFormZip() {
                         </FormItem>
                     )}
                 />
-                <Button type="submit">Submit</Button>
+                {
+                    isSubmitting ? <Spinner /> : <Button type="submit">Submit</Button>
+                }
+                <DialogClose ref={closeRef} className="hidden" />
             </form>
         </Form>
     )

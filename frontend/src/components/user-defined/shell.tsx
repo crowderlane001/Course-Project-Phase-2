@@ -1,12 +1,10 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   Home,
-  LineChart,
   Menu,
   Package,
   Package2,
   Search,
-  Users,
 } from "lucide-react";
 
 import { useUserManager } from "@/hooks/use-usermanager";
@@ -61,26 +59,6 @@ export function Shell({ children }: ShellProps) {
                 <Package className="h-6 w-6" />
                 Packages
               </NavLink>
-              <NavLink
-                to="/members"
-                className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-lg px-2 py-2 transition-all ${isActive ? 'text-primary bg-muted' : 'text-muted-foreground hover:text-primary'
-                  }`
-                }
-              >
-                <Users className="h-6 w-6" />
-                Members List
-              </NavLink>
-              <NavLink
-                to="/analytics"
-                className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-lg px-2 py-2 transition-all ${isActive ? 'text-primary bg-muted' : 'text-muted-foreground hover:text-primary'
-                  }`
-                }
-              >
-                <LineChart className="h-6 w-6" />
-                Analytics
-              </NavLink>
             </nav>
           </div>
         </div>
@@ -128,30 +106,6 @@ export function Shell({ children }: ShellProps) {
                     Packages
                   </NavLink>
                 </SheetTrigger>
-                <SheetTrigger asChild>
-                  <NavLink
-                    to="/members"
-                    className={({ isActive }) =>
-                      `mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 ${isActive ? 'text-foreground bg-muted' : 'text-muted-foreground hover:text-foreground'
-                      }`
-                    }
-                  >
-                    <Users className="h-5 w-5" />
-                    Members List
-                  </NavLink>
-                </SheetTrigger>
-                <SheetTrigger asChild>
-                  <NavLink
-                    to="/analytics"
-                    className={({ isActive }) =>
-                      `mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 ${isActive ? 'text-foreground bg-muted' : 'text-muted-foreground hover:text-foreground'
-                      }`
-                    }
-                  >
-                    <LineChart className="h-5 w-5" />
-                    Analytics
-                  </NavLink>
-                </SheetTrigger>
               </nav>
               <div className="h-16 w-full drop-shadow-lg rounded-md">
                 {user ? <LogOutButton /> :
@@ -184,9 +138,11 @@ export function Shell({ children }: ShellProps) {
           </div>
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 relative w-[100%] items-center">
+
           <div className="w-[100%] max-w-[900px]">
             {children}
           </div>
+
         </main>
       </div>
     </div>
