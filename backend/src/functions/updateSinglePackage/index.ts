@@ -309,12 +309,12 @@ export async function handler(
     const packageId = event.pathParameters?.id;
 
     const body = JSON.parse(event.body);
-    console.log("Body!~~~~~~~!!!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-    console.log(body);
-    console.log("Body!~~~~~~~!!!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+
 
     const newPackageData = PackageSchema.safeParse(body);
-    
+    console.log("newPackageData!~~~~~~~!!!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    console.log(newPackageData);
+    console.log("newPackageData!~~~~~~~!!!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     if (!newPackageData.success) {
       return {
         statusCode: 400,
