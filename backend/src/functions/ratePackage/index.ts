@@ -282,23 +282,14 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   } catch (error) {
     console.error("Error:", error);
 
-    // Determine error response
-    let statusCode = 500;
-    let message = "Internal Server Error";
-
-    if (error instanceof PackageRegistryError) {
-      statusCode = error.statusCode;
-      message = error.message;
-    }
-
     return {
-      statusCode,
+      statusCode: 500,
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         error: {
-          message,
+          "Internal Server Error",
         },
       }),
     };
