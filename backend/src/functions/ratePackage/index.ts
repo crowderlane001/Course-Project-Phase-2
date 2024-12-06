@@ -271,7 +271,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     
     console.log("Metrics updated successfully");
 
-    // Return a successful response with the package rating
+    // Return a successful response with the package ratings
     return {
       statusCode: 200,
       headers: {
