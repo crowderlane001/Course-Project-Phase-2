@@ -213,6 +213,15 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
             };
         }).filter((item) => item !== null); // Remove nulls
 
+        if (filteredItems.length === 0) {
+            return {
+                statusCode: 404,
+                body: JSON.stringify({
+                    message: "No packages matched the provided regex pattern.",
+                }), // Provide an explanatory message
+            };
+        }
+
         // Respond with the filtered items
         return {
             statusCode: 200,
