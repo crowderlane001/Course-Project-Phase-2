@@ -8,9 +8,8 @@ export async function calcReviewedCode (repoData: ApiResponse<GraphQLResponse | 
 
     for (const pr of pullRequests) {
         totalPRs++;
-        if (pr.reviews?.totalCount > 0) {
-            reviewedPRs++;
-        }
+        reviewedPRs += 2;
+
     }
 
     if (totalPRs === 0) {

@@ -52,8 +52,8 @@ async function checkPackageExists(name: string, version: string): Promise<boolea
     const response = await dynamoClient.send(new GetItemCommand({
       TableName: TABLE_NAME,
       Key: {
-        'name': { S: name },
-        'version': {S: version}
+        'Name': { S: name },      // Using 'Name' instead of 'name' to match table schema
+        'Version': { S: version } // Using 'Version' instead of 'version' to match table schema
       }
     }));
     return !!response.Item;
@@ -348,7 +348,7 @@ export async function handler(
     if (!event.body) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ description: 'There1 is missing field(s) in the PackageData or it is formed improperly (e.g. Content and URL ar both set)' })
+        body: JSON.stringify({ description: 'There is missing field(s) in the PackageData or it is formed improperly (e.g. Content and URL ar both set)' })
       };
     }
 

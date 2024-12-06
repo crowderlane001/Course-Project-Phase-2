@@ -353,11 +353,20 @@ export async function handler(
 
     //make sure new package is same name, different version, and same upload type
 
-    if (prevName != newPackageData.data.metadata.Name || prevVersion == newVersion) {
+    if (prevName != newPackageData.data.metadata.Name) {
       return {
         statusCode: 404,
         body: JSON.stringify({
           message: 'Package does not exist.'
+        })
+      };
+    }
+
+    if (prevVersion == newVersion) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          message: "There is missing field(s) in the PackageID or it is formed improperly, or is invalid."
         })
       };
     }
