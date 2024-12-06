@@ -54,6 +54,8 @@ export async function getRepoDetails(token: string, inputURL: string): Promise<[
     // Remove 'git+' prefix if it exists
     let sanitizedURL = inputURL.startsWith("git+") ? inputURL.slice(4) : inputURL;
 
+    console.log('Sanitized URL:', sanitizedURL);
+
     // Extract hostname (www.npm.js or github.com or null)
     const hostname = extractDomainFromUrl(sanitizedURL);
     if (!hostname || (hostname !== "www.npmjs.com" && hostname !== "github.com")) {
