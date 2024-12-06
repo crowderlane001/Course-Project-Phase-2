@@ -137,43 +137,57 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { main } from "./src/indexSRC";
+import * as jwt from 'jsonwebtoken';
 
 // Initialize DynamoDB client
 const client = new DynamoDBClient({});
 const dynamo = DynamoDBDocumentClient.from(client);
 
 const TABLE_NAME = "PackageRegistry";
-const GSI_NAME = "id-index"; // Replace with your actual GSI name if different
+const GSI_NAME = "id-index";
+const JWT_SECRET = '1b7e4f8a9c2d1e6m3k5p9q8r7t2y4x6zew';
 
 // Custom error class for better error handling
-class PackageRegistryError extends Error {
-  statusCode: number;
-
-  constructor(message: string, statusCode = 400) {
-    super(message);
-    this.name = "PackageRegistryError";
-    this.statusCode = statusCode;
-  }
-}
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+
+  const token = event.headers['X-Authorization']?.split(' ')[1];
+
+  if (!token) {
+    return {
+      statusCode: 403,
+      body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+    };
+  }
+
+  try {
+    // Verify the JWT
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    console.log('Token is valid:', decoded);
+  } catch (err) {
+    console.error('Token verification failed:', err);
+
+    return {
+      statusCode: 403,
+      body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+    };
+  }
+
+
   try {
     // Validate HTTP method
-    if (event.httpMethod !== "GET") {
-      throw new PackageRegistryError("Method not allowed", 405);
-    }
 
     // Validate path parameter for package ID
-    const packageId = event.pathParameters?.id; // API input uses 'id'
+    const packageId = event.pathParameters?.id; // API input uses 'id' Note: must be path parameter since the id is specified in path
     if (!packageId) {
-      throw new PackageRegistryError("Package ID is missing in the request", 400);
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ message: 'There is missing field(s) in the PackageID' }),
+      };
     }
-
-    // Validate headers for X-Authorization
-    const authToken = event.headers["X-Authorization"];
-    if (!authToken) {
-      throw new PackageRegistryError("Authentication failed: Missing AuthenticationToken", 403);
-    }
+    console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ID~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    console.log(packageId);
 
     // Query the package from DynamoDB using the GSI
     const { Items } = await dynamo.send(
@@ -191,42 +205,52 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     );
 
     if (!Items || Items.length === 0) {
-      throw new PackageRegistryError(`Package with ID '${packageId}' does not exist`, 404);
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ message: 'Package does not exist.' }),
+      };
     }
 
-    var metrics = {
-      RampUp: -1,
-      Correctness: -1,
-      BusFactor: -1,
-      ResponsiveMaintainer: -1,
-      LicenseScore: -1,
-      GoodPinningPractice: -1,
-      PullRequest: -1,
-      NetScore: -1,
-      RampUpLatency: -1,
-      CorrectnessLatency: -1,
-      BusFactorLatency: -1,
-      ResponsiveMaintainerLatency: -1,
-      LicenseScoreLatency: -1,
-      GoodPinningPracticeLatency: -1,
-      PullRequestLatency: -1,
-      NetScoreLatency: -1,
-    };
+    // var metrics = {
+    //   RampUp: -1,
+    //   Correctness: -1,
+    //   BusFactor: -1,
+    //   ResponsiveMaintainer: -1,
+    //   LicenseScore: -1,
+    //   GoodPinningPractice: -1,
+    //   PullRequest: -1,
+    //   NetScore: -1,
+    //   RampUpLatency: -1,
+    //   CorrectnessLatency: -1,
+    //   BusFactorLatency: -1,
+    //   ResponsiveMaintainerLatency: -1,
+    //   LicenseScoreLatency: -1,
+    //   GoodPinningPracticeLatency: -1,
+    //   PullRequestLatency: -1,
+    //   NetScoreLatency: -1,
+    // };
 
     const item = Items[0]; // Assuming one record per ID
-    if (item.URL) {
-      // Fetch metrics if URL is present
-      metrics = await main(item.URL);
-
-      if (!metrics) {
-        throw new PackageRegistryError("The package rating system choked on at least one of the metrics", 500);
-      }
+    if (!item.URL) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ message: 'Package does not exist.' }),
+      };
     }
 
-    // Check if metrics are available for the package
+    console.log(item.URL);
+
+    const metrics = await main(item.URL);
+
     if (!metrics) {
-      throw new PackageRegistryError("The package rating system choked on at least one of the metrics", 500);
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ message: 'The package rating system choked on at least one of the metrics.' }),
+      };
     }
+
+    console.log("Metrics calculated successfully");
+
 
     // Update the metrics in the DynamoDB table
     await dynamo.send(
@@ -239,9 +263,11 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         },
         ExpressionAttributeValues: {
           ":metrics": metrics,
-        },
+        }
       })
     );
+    
+    console.log("Metrics updated successfully");
 
     // Return a successful response with the package rating
     return {
@@ -255,26 +281,12 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     };
   } catch (error) {
     console.error("Error:", error);
-
-    // Determine error response
-    let statusCode = 500;
-    let message = "Internal Server Error";
-
-    if (error instanceof PackageRegistryError) {
-      statusCode = error.statusCode;
-      message = error.message;
-    }
-
     return {
-      statusCode,
-      headers: {
-        "Content-Type": "application/json",
-      },
+      statusCode: 500,
       body: JSON.stringify({
-        error: {
-          message,
-        },
-      }),
+        message: 'Internal server error during bulk deletion',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      })
     };
   }
 };

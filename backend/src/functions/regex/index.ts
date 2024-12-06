@@ -98,6 +98,8 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayEvent, Context } from "aws-lambda";
+import * as jwt from 'jsonwebtoken';
+const JWT_SECRET = '1b7e4f8a9c2d1e6m3k5p9q8r7t2y4x6zew';
 
 // Create a DynamoDB client instance
 const dynamoClient = new DynamoDBClient({ region: "us-east-1" });
@@ -109,6 +111,29 @@ const documentClient = DynamoDBDocumentClient.from(dynamoClient);
 const TABLE_NAME = "PackageRegistry";
 
 export const handler = async (event: APIGatewayEvent, context: Context) => {
+    const token = event.headers['X-Authorization']?.split(' ')[1];
+
+    if (!token) {
+      return {
+        statusCode: 403,
+        body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+      };
+    }
+  
+    try {
+      // Verify the JWT
+      const decoded = jwt.verify(token, JWT_SECRET);
+  
+      console.log('Token is valid:', decoded);
+    } catch (err) {
+      console.error('Token verification failed:', err);
+  
+      return {
+        statusCode: 403,
+        body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+      };
+    }
+
     try {
         // Extract the search pattern from the event body (looking for 'RegEx')
         const requestBody = event.body ? JSON.parse(event.body) : {};
@@ -118,14 +143,26 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
             return {
                 statusCode: 400,
                 body: JSON.stringify({
-                    message: "'RegEx' is required for searching.",
+                    message: "There is missing field(s) in the PackageRegEx or it is formed improperly, or is invalid",
                 }),
             };
         }
 
-        const regex = new RegExp(pattern, "i"); // Create a case-insensitive regex
+        let regex: RegExp;
+        try {
+            regex = new RegExp(pattern, "i"); // Create a case-insensitive regex
+        } catch (err) {
+            console.error("Invalid regex pattern:", err);
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ message: "There is missing field(s) in the PackageRegEx or it is formed improperly, or is invalid" }),
+            };
+        }
 
         // Scan the table for all items using the DocumentClient
+
+        //backtracking in regex 400 where its bad
+
         const scanCommand = new ScanCommand({
             TableName: TABLE_NAME,
         });
@@ -140,27 +177,51 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
             };
         }
 
-        // Filter items and enforce PackageMetadata schema
-        const filteredItems = scanResult.Items.filter((item) => {
+        const filteredItems = [];
+        const timeout = 1000; // 1 second timeout for regex operations
+    
+        for (const item of scanResult.Items) {
             const name = item.Name || "";
-            return regex.test(name);
-        }).map((item) => {
-            if (!item.Name || !item.Version || !item.ID) {
-                console.warn(
-                    `Skipping invalid item: ${JSON.stringify(item)}`
-                );
-                return null; // Exclude invalid items
+            let match = false;
+    
+            try {
+                const start = Date.now();
+                match = regex.test(name);
+                const duration = Date.now() - start;
+    
+                if (duration > timeout) {
+                    throw new Error("Regex operation timed out");
+                }
+            } catch (err) {
+                console.error("Regex operation failed:", err);
+                return {
+                    statusCode: 400,
+                    body: JSON.stringify({ message: "Regex operation failed due to backtracking or excessive length" }),
+                };
             }
-            return {
-                Name: item.Name, // Expected to exist
-                Version: item.Version, // Expected to exist
-                ID: item.ID, // Expected to exist
-            };
-        }).filter((item) => item !== null); // Remove nulls
+    
+            if (match) {
+                if (!item.Name || !item.Version || !item.ID) {
+                    console.warn(`Skipping invalid item: ${JSON.stringify(item)}`);
+                    continue; // Exclude invalid items
+                }
+                filteredItems.push({
+                    Name: item.Name, // Expected to exist
+                    Version: item.Version, // Expected to exist
+                    ID: item.ID, // Expected to exist
+                });
+            }
+        }
 
         // Respond with the filtered items
         return {
             statusCode: 200,
+            headers: {
+                "Access-Control-Allow-Origin": "http://localhost:5173", // Allow requests from your frontend
+                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS", // Allow HTTP methods
+                "Access-Control-Allow-Headers": "Content-Type, Authorization", // Allow headers
+                'Content-Type': 'application/json'
+              },
             body: JSON.stringify(filteredItems) // Return filteredItems directly
         };
     } catch (error) {
