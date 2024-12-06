@@ -11,6 +11,7 @@ export const apiGetRequest = async <T>(
     retryDelay: number = 2000
 ): Promise<ApiResponse<T>> => {
     try {
+        console.log(url)
         const config: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',
@@ -27,6 +28,8 @@ export const apiGetRequest = async <T>(
 
         return { data: response.data, error: null };
     } catch (error: any) {
+        console.log("Apigetrequest error")
+        console.log(url)
         // Check for 404 error and specific GitHub License API documentation URL
         if (error.response?.status === 404 && error.response?.data?.documentation_url === 'https://docs.github.com/rest/licenses/licenses#get-the-license-for-a-repository') {
             console.warn('No license found for this repository.');
@@ -55,6 +58,9 @@ export const apiPostRequest = async <T>(
         
         return { data: response.data, error: null };
     } catch (error: any) {
+        console.log("apipostrequest error")
+        console.log(url)
+
         console.error('Error details:', error.response?.data || error.message || error);
         return { data: null, error: error.response?.data?.message || error.message || 'apipostrequest error' };
     }

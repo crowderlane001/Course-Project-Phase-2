@@ -249,6 +249,8 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       };
     }
 
+    console.log(metrics);
+
     console.log("Metrics calculated successfully");
 
 
