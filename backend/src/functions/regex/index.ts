@@ -165,11 +165,16 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
             };
         }
 
+        console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~REGEX~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
+        console.log(pattern);
+        console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~REGEX~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
+
+
         if (hasBacktrackingRisk(pattern)) {
             return {
                 statusCode: 400,
                 body: JSON.stringify({
-                    message: "The provided regex pattern has potential backtracking issues and is not allowed for security reasons.",
+                    message: "There is missing field(s) in the PackageRegEx or it is formed improperly, or is invalid",
                 }),
             };
         }
