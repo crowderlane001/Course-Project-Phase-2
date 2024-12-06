@@ -1,342 +1,337 @@
-// src/functions/sizeCost/sizeCost.ts
-
-import { S3Client, GetObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
-import { DynamoDBClient, QueryCommand, ScanCommand } from '@aws-sdk/client-dynamodb';
-import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import * as unzipper from 'unzipper'; // Correct namespace impo
-import * as stream from 'stream';
-import { promisify } from 'util';
-
-const pipeline = promisify(stream.pipeline);
+import { S3Client, HeadObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
+import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import * as unzipper from "unzipper";
 
 const s3Client = new S3Client({});
 const dynamoDb = new DynamoDBClient({});
 const TABLE_NAME = "PackageRegistry";
 const BUCKET_NAME = "storage-phase-2";
-// Custom Error Classes
-class PackageNotFoundError extends Error {
-    constructor(message: string = 'Package not found') {
-        super(message);
-        this.name = 'PackageNotFoundError'; // Ensure the name is set correctly
-    }
-}
 
-// Cache to store already calculated costs to prevent redundant calculations
-const costCache: { [key: string]: number } = {};
-
-// Define the structure of dependencies
-interface Dependency {
-    name: string;
-    version: string;
-}
-
-// Define the structure of a DynamoDB Package Item
 interface PackageItem {
-    ID: string;
-    Name: string;
-    Version: string;
-    s3Key: string;
-    dependencies?: Dependency[];
-    // Add other relevant fields as needed
+  ID: string;
+  Name: string;
+  Version: string;
+  s3Key: string;
 }
 
-// Define the structure of package.json
 interface PackageJson {
-    dependencies?: Record<string, string>;
-    // Add other relevant fields as needed
+  dependencies?: Record<string, string>;
 }
 
-// Get package size from S3 in MB
-async function getPackageSize(s3Key: string): Promise<number> {
-    try {
-        const command = new HeadObjectCommand({
-            Bucket: BUCKET_NAME,
-            Key: s3Key
-        });
-        const response = await s3Client.send(command);
-        if (!response.ContentLength) {
-            throw new Error('ContentLength is undefined');
-        }
-        return response.ContentLength / (1024 * 1024); // Convert bytes to MB
-    } catch (error) {
-        console.error('Error getting package size:', error);
-        throw new Error('Internal Server Error'); // Map to 500
-    }
-}
+const normalizeVersion = (version: string): string => {
+  return version.replace(/[^\d.]/g, '');
+};
 
-// Get package from DynamoDB using Query by Name and Version
-async function getPackageIdByNameVersion(name: string, version: string): Promise<string | null> {
-    try {
-        console.log(`Querying DynamoDB for package ID with Name: ${name}, Version: ${version}`);
-        const queryCommand = new QueryCommand({
-            TableName: TABLE_NAME,
-            IndexName: 'NameVersionIndex', // Ensure you have created this GSI in DynamoDB
-            KeyConditionExpression: '#name = :nameVal AND #version = :versionVal',
-            ExpressionAttributeNames: {
-                '#name': 'Name',
-                '#version': 'Version',
-            },
-            ExpressionAttributeValues: marshall({
-                ':nameVal': name,
-                ':versionVal': version,
-            }),
-            ProjectionExpression: 'ID',
-        });
+const versionSatisfiesRange = (version: string, range: string): boolean => {
+  console.log(`[VERSION] Checking if ${version} satisfies ${range}`);
+  const cleanVersion = normalizeVersion(version);
+  const cleanRange = range.replace(/[\^~]/, '');
+  
+  if (range.startsWith('^')) {
+    const [vMajor] = cleanVersion.split('.');
+    const [rMajor] = cleanRange.split('.');
+    console.log(`[VERSION] Caret range: comparing major versions ${vMajor} === ${rMajor}`);
+    return vMajor === rMajor;
+  } 
+  
+  if (range.startsWith('~')) {
+    const [vMajor, vMinor] = cleanVersion.split('.');
+    const [rMajor, rMinor] = cleanRange.split('.');
+    console.log(`[VERSION] Tilde range: comparing ${vMajor}.${vMinor} === ${rMajor}.${rMinor}`);
+    return vMajor === rMajor && vMinor === rMinor;
+  }
+  
+  console.log(`[VERSION] Exact match: comparing ${cleanVersion} === ${cleanRange}`);
+  return cleanVersion === cleanRange;
+};
 
-        const result = await dynamoDb.send(queryCommand);
-        if (result.Items && result.Items.length > 0) {
-            const item = unmarshall(result.Items[0]);
-            console.log(`Found package ID: ${item.ID}`);
-            return item.ID;
-        } else {
-            console.warn(`No package found for ${name}@${version}`);
-            return null;
-        }
-    } catch (error) {
-        console.error('Error querying package ID by Name and Version:', error);
-        throw new Error('Internal Server Error'); // Map to 500
-    }
-}
-
-// Get package from DynamoDB using Scan by ID
-async function getPackageFromDB(packageId: string): Promise<PackageItem> {
-    try {
-        console.log('Scanning DynamoDB for package with ID:', packageId);
-
-        const scanCommand = new ScanCommand({
-            TableName: TABLE_NAME,
-            FilterExpression: 'ID = :id',
-            ExpressionAttributeValues: marshall({
-                ':id': packageId
-            })
-        });
-
-        const result = await dynamoDb.send(scanCommand);
-
-        if (!result.Items || result.Items.length === 0) {
-            throw new PackageNotFoundError();
-        }
-
-        const packageItem = unmarshall(result.Items[0]);
-
-        // Type assertion to PackageItem
-        return packageItem as PackageItem;
-    } catch (error) {
-        console.error('Error scanning DynamoDB for package:', error);
-        if ((error as Error).name === 'PackageNotFoundError') {
-            throw error; // Re-throw to be caught by the handler
-        }
-        throw new Error('Internal Server Error'); // For any other errors
-    }
-}
-
-// Extract dependencies from package.json within the S3 zip file
-async function extractDependenciesFromS3(s3Key: string): Promise<Dependency[]> {
-    try {
-        console.log(`Extracting dependencies from S3 key: ${s3Key}`);
-        const getObjectCommand = new GetObjectCommand({
-            Bucket: BUCKET_NAME,
-            Key: s3Key
-        });
-
-        const s3Response = await s3Client.send(getObjectCommand);
-        if (!s3Response.Body) {
-            throw new Error('S3 object body is undefined');
-        }
-
-        // Convert the S3 stream to a buffer
-        const buffer = await streamToBuffer(s3Response.Body as stream.Readable);
-
-        // Use unzipper to parse the zip buffer
-        const directory = await unzipper.Open.buffer(buffer);
-        const packageJsonFile = directory.files.find((file: unzipper.File) => file.path === 'package.json'); // Use 'File' type
-
-        if (!packageJsonFile) {
-            console.warn(`package.json not found in ${s3Key}`);
-            return [];
-        }
-
-        const packageJsonContent = await packageJsonFile.buffer();
-        const packageJson: PackageJson = JSON.parse(packageJsonContent.toString());
-
-        const dependencies: Dependency[] = [];
-
-        if (packageJson.dependencies) {
-            for (const [name, version] of Object.entries(packageJson.dependencies)) {
-                dependencies.push({ name, version });
-            }
-        }
-
-        console.log(`Extracted dependencies:`, dependencies);
-        return dependencies;
-    } catch (error) {
-        console.error('Error extracting dependencies from S3:', error);
-        throw new Error('Internal Server Error'); // Map to 500
-    }
-}
-
-// Helper function to convert a stream to a buffer
-async function streamToBuffer(readableStream: stream.Readable): Promise<Buffer> {
-    const chunks: Buffer[] = [];
-    return new Promise((resolve, reject) => {
-        readableStream.on('data', (chunk) => {
-            chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-        });
-        readableStream.on('end', () => resolve(Buffer.concat(chunks)));
-        readableStream.on('error', reject);
+const getPackageSize = async (s3Key: string): Promise<number> => {
+  try {
+    const key = s3Key.endsWith('.zip') ? s3Key : `${s3Key}.zip`;
+    console.log("[SIZE] Getting size from S3 for key:", key);
+    
+    const command = new HeadObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: key
     });
-}
+    
+    const response = await s3Client.send(command);
+    console.log("[SIZE] S3 response:", {
+      contentLength: response.ContentLength,
+      metaData: response.Metadata
+    });
 
-// Validate PackageID against the regex pattern '^[a-zA-Z0-9\-]+$'
-function isValidPackageID(packageId: string): boolean {
-    const packageIdPattern = /^[a-zA-Z0-9\-]+$/;
-    return packageIdPattern.test(packageId);
-}
-
-// Calculate total cost including dependencies
-async function calculateTotalCost(packageId: string, seenPackages: Set<string>): Promise<number> {
-    console.log(`Calculating total cost for package ID: ${packageId}`);
-
-    if (seenPackages.has(packageId)) {
-        console.log(`Package ID ${packageId} already processed. Skipping to prevent circular dependency.`);
-        return 0;
+    if (!response.ContentLength) {
+      console.log("[SIZE] No content length found for:", key);
+      return 0;
     }
 
-    if (costCache[packageId] !== undefined) {
-        console.log(`Cache hit for package ID: ${packageId}. Cost: ${costCache[packageId]} MB`);
-        return costCache[packageId];
+    // More precise size calculation - ensure we don't lose small files
+    const mbSize = response.ContentLength / (1024 * 1024);
+    const roundedSize = Number((Math.max(mbSize, 0.001)).toFixed(3));
+    console.log(`[SIZE] Calculated size for ${key}: ${roundedSize} MB (${response.ContentLength} bytes)`);
+    return roundedSize;
+  } catch (error: unknown) {
+    console.error("[SIZE] Error getting package size:", error);
+    if (
+      typeof error === 'object' && 
+      error !== null && 
+      'name' in error && 
+      typeof (error as { name: string }).name === 'string'
+    ) {
+      const s3Error = error as { name: string };
+      if (s3Error.name === 'NoSuchKey') {
+        console.log("[SIZE] File not found in S3:", s3Key);
+      }
+    }
+    return 0;
+  }
+};
+
+const logRegistryState = async () => {
+  try {
+    const scanCommand = new ScanCommand({ TableName: TABLE_NAME });
+    const result = await dynamoDb.send(scanCommand);
+    console.log("[REGISTRY] Available packages:", 
+      result.Items?.map(item => {
+        const pkg = unmarshall(item);
+        return `${pkg.Name}@${pkg.Version} (${pkg.ID})`;
+      })
+    );
+  } catch (error: unknown) {
+    console.error("[REGISTRY] Error scanning registry:", error);
+  }
+};
+
+const getPackageByNameAndVersion = async (name: string, version: string): Promise<PackageItem | null> => {
+  try {
+    console.log(`[DB] Looking for package: ${name}@${version}`);
+    
+    const scanCommand = new ScanCommand({
+      TableName: TABLE_NAME,
+      FilterExpression: "#n = :name",
+      ExpressionAttributeNames: {
+        "#n": "Name"
+      },
+      ExpressionAttributeValues: marshall({
+        ":name": name
+      })
+    });
+
+    const result = await dynamoDb.send(scanCommand);
+    if (!result.Items || result.Items.length === 0) {
+      console.log(`[DB] No versions found for package ${name}`);
+      return null;
     }
 
-    seenPackages.add(packageId);
+    const items = result.Items.map(item => unmarshall(item) as PackageItem);
+    console.log(`[DB] Found ${items.length} versions for ${name}:`, 
+      items.map(i => `${i.Version} (ID: ${i.ID})`)
+    );
 
-    try {
-        const item = await getPackageFromDB(packageId);
-        if (!item) {
-            console.warn(`Package with ID ${packageId} not found`);
-            return 0;
-        }
-
-        const packageSize = await getPackageSize(item.s3Key);
-        let totalCost = packageSize;
-
-        let dependencies: Dependency[] = [];
-
-        // Check if dependencies are already stored in DynamoDB item
-        if (item.dependencies && Array.isArray(item.dependencies)) {
-            dependencies = item.dependencies;
-            console.log(`Dependencies found in DynamoDB for ${packageId}:`, dependencies);
-        } else {
-            // Extract dependencies from package.json
-            dependencies = await extractDependenciesFromS3(item.s3Key);
-        }
-
-        console.log(`Processing dependencies for package ID: ${packageId}`);
-
-        for (const dep of dependencies) {
-            const depId = await getPackageIdByNameVersion(dep.name, dep.version);
-            if (depId) {
-                const depCost = await calculateTotalCost(depId, seenPackages);
-                totalCost += depCost;
-            } else {
-                console.warn(`Dependency ${dep.name}@${dep.version} not found in registry.`);
-            }
-        }
-
-        costCache[packageId] = totalCost;
-        console.log(`Total cost for package ID ${packageId}: ${totalCost} MB`);
-        return totalCost;
-    } catch (error) {
-        console.error(`Error calculating total cost for package ID ${packageId}:`, error);
-        throw new Error('Internal Server Error'); // Map to 500
+    for (const item of items) {
+      if (versionSatisfiesRange(item.Version, version)) {
+        console.log(`[DB] Version ${item.Version} satisfies ${version}`);
+        return item;
+      }
     }
-}
+
+    console.log(`[DB] No matching version found for ${name}@${version}`);
+    return null;
+  } catch (error: unknown) {
+    console.error("[DB] Error in getPackageByNameAndVersion:", error);
+    return null;
+  }
+};
+
+const getPackageById = async (id: string): Promise<PackageItem | null> => {
+  try {
+    console.log("[DB] Looking for package with ID:", id);
+    
+    const scanCommand = new ScanCommand({
+      TableName: TABLE_NAME,
+      FilterExpression: "ID = :id",
+      ExpressionAttributeValues: marshall({
+        ":id": id
+      })
+    });
+
+    const result = await dynamoDb.send(scanCommand);
+    if (!result.Items || result.Items.length === 0) {
+      console.log("[DB] Package not found with ID:", id);
+      return null;
+    }
+
+    const pkg = unmarshall(result.Items[0]) as PackageItem;
+    console.log("[DB] Found package:", `${pkg.Name}@${pkg.Version} (${pkg.ID})`);
+    return pkg;
+  } catch (error: unknown) {
+    console.error("[DB] Error in getPackageById:", error);
+    return null;
+  }
+};
+
+const extractPackageJson = async (s3Key: string): Promise<PackageJson | null> => {
+  try {
+    const key = s3Key.endsWith('.zip') ? s3Key : `${s3Key}.zip`;
+    console.log("[EXTRACT] Getting package.json from:", key);
+    
+    const command = new GetObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: key
+    });
+
+    const response = await s3Client.send(command);
+    if (!response.Body) {
+      console.log("[EXTRACT] No response body");
+      return null;
+    }
+
+    const streamToBuffer = async (stream: any): Promise<Buffer> => {
+      const chunks = [];
+      for await (const chunk of stream) {
+        chunks.push(chunk);
+      }
+      return Buffer.concat(chunks);
+    };
+
+    const buffer = await streamToBuffer(response.Body);
+    const directory = await unzipper.Open.buffer(buffer);
+    const packageJsonFile = directory.files.find(f => 
+      f.path.includes('package.json') && !f.path.includes('node_modules')
+    );
+
+    if (!packageJsonFile) {
+      console.log("[EXTRACT] No package.json found");
+      return null;
+    }
+
+    const content = await packageJsonFile.buffer();
+    const packageJson = JSON.parse(content.toString());
+    console.log("[EXTRACT] Found package.json with", packageJson.dependencies ? Object.keys(packageJson.dependencies).length : 0, "dependencies");
+    return packageJson;
+  } catch (error: unknown) {
+    console.error("[EXTRACT] Error reading package.json:", error);
+    return null;
+  }
+};
+
+const calculateDependenciesSize = async (packageItem: PackageItem): Promise<number> => {
+  try {
+    await logRegistryState();
+
+    let totalSize = await getPackageSize(packageItem.s3Key);
+    console.log(`[CALC] Base package ${packageItem.Name}@${packageItem.Version} (${packageItem.ID}) size: ${totalSize} MB`);
+    
+    const packageJson = await extractPackageJson(packageItem.s3Key);
+    if (!packageJson?.dependencies) {
+      console.log('[CALC] No dependencies found in package.json');
+      return totalSize;
+    }
+
+    console.log("[CALC] Found dependencies:", packageJson.dependencies);
+    let foundDeps = 0;
+    let missingDeps = 0;
+    let depSizes = [];
+    
+    for (const [name, version] of Object.entries(packageJson.dependencies)) {
+      const depKey = `${name}@${version}`;
+      console.log(`\n[CALC] Processing dependency: ${depKey}`);
+      
+      const dep = await getPackageByNameAndVersion(name, version);
+      if (dep) {
+        foundDeps++;
+        const depSize = await getPackageSize(dep.s3Key);
+        console.log(`[CALC] Found dependency ${name}@${dep.Version} with size ${depSize} MB`);
+        depSizes.push({ name, version: dep.Version, size: depSize });
+        totalSize += depSize;
+      } else {
+        missingDeps++;
+        console.log(`[CALC] Dependency not available in registry: ${depKey}`);
+      }
+    }
+
+    console.log('\n[CALC] Dependencies summary:');
+    console.log(`- Total dependencies found: ${foundDeps}`);
+    console.log(`- Missing dependencies: ${missingDeps}`);
+    console.log('- Dependency sizes:', depSizes);
+    console.log(`- Final total size: ${totalSize} MB`);
+    
+    // Ensure total size is never less than standalone
+    return Number((Math.max(totalSize, totalSize)).toFixed(3));
+  } catch (error: unknown) {
+    console.error("[CALC] Error calculating dependencies size:", error);
+    return 0;
+  }
+};
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    try {
-        // Get and validate package ID
-        const packageId = event.pathParameters?.id;
-        const dependencyParam = event.queryStringParameters?.dependency;
-        const includeDependencies = dependencyParam === 'true';
+  try {
+    console.log("[HANDLER] Event received:", JSON.stringify(event, null, 2));
+    
+    const packageId = event.pathParameters?.id;
+    const includeDependencies = event.queryStringParameters?.dependency === "true";
 
-        if (!packageId) {
-            console.warn('Missing packageId in path parameters');
-            return {
-                statusCode: 400,
-                body: JSON.stringify({ message: 'There is missing field(s) in the PackageID or it is formed improperly, or is invalid.' })
-            };
-        }
-        // Validate packageId format
-        if (!isValidPackageID(packageId)) {
-            console.warn(`Invalid packageId format: ${packageId}`);
-            return {
-                statusCode: 400,
-                body: JSON.stringify({ message: 'There is missing field(s) in the PackageID or it is formed improperly, or is invalid.' })
-            };
-        }
-
-        try {
-            const item = await getPackageFromDB(packageId);
-            const standaloneSize = await getPackageSize(item.s3Key);
-
-            let response: any = {};
-
-            if (includeDependencies) {
-                const totalCost = await calculateTotalCost(packageId, new Set<string>());
-                response = {
-                    [packageId]: {
-                        standaloneCost: Number(standaloneSize.toFixed(3)),
-                        totalCost: Number(totalCost.toFixed(3))
-                    }
-                };
-            } else {
-                response = {
-                    [packageId]: {
-                        totalCost: Number(standaloneSize.toFixed(3))
-                    }
-                };
-            }
-
-            console.log(`Returning 200 for package ID ${packageId}`);
-            return {
-                statusCode: 200,
-                headers: {
-                    "Access-Control-Allow-Origin": "http://localhost:5173", // Allow requests from your frontend
-                    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS", // Allow HTTP methods
-                    "Access-Control-Allow-Headers": "Content-Type, Authorization", // Allow headers
-                },
-                body: JSON.stringify(response)
-            };
-
-        } catch (error) {
-            // Log the error details for debugging
-            console.error('Error during package processing:', error);
-
-            // Check error name to determine the status code
-            if ((error as Error).name === 'PackageNotFoundError') {
-                console.warn(`PackageNotFoundError: ${packageId} does not exist`);
-                return {
-                    statusCode: 404,
-                    body: JSON.stringify({ message: 'Package does not exist.' })
-                };
-            }
-
-            // For any other errors during package retrieval or cost calculation
-            return {
-                statusCode: 500,
-                body: JSON.stringify({ 
-                    message: 'The package rating system choked on at least one of the metrics.' 
-                })
-            };
-        }
-
-    } catch (error) {
-        console.error('Unexpected error:', error);
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ 
-                message: 'The package rating system choked on at least one of the metrics.' 
-            })
-        };
+    if (!packageId || !/^[a-zA-Z0-9\-]+$/.test(packageId)) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          message: "There is missing field(s) in the PackageID"
+        })
+      };
     }
+
+    const packageItem = await getPackageById(packageId);
+    if (!packageItem) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({
+          message: "Package does not exist."
+        })
+      };
+    }
+
+    const standaloneSize = await getPackageSize(packageItem.s3Key);
+    console.log("[HANDLER] Standalone size:", standaloneSize);
+
+    // Use dependency parameter to control response format
+    if (includeDependencies) {
+      const totalSize = await calculateDependenciesSize(packageItem);
+      console.log("[HANDLER] Final sizes:", {
+        standalone: standaloneSize,
+        total: Math.max(totalSize, standaloneSize)
+      });
+      
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          [packageId]: {
+            standaloneCost: standaloneSize,
+            totalCost: Math.max(totalSize, standaloneSize)
+          }
+        })
+      };
+    }
+
+    // Without dependency parameter, just return totalCost
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        [packageId]: {
+          totalCost: standaloneSize
+        }
+      })
+    };
+
+  } catch (error: unknown) {
+    console.error("[HANDLER] Unexpected error:", error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        message: "The package rating system encountered an error."
+      })
+    };
+  }
 };
