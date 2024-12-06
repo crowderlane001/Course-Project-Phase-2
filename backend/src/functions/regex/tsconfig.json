@@ -1,24 +1,21 @@
 {
   "compilerOptions": {
     "target": "ES2017",                                
-    "lib": ["dom"],
-    "module": "commonjs",                               
+    "lib": ["dom"],                                  
+    "module": "commonjs",                             
     "moduleResolution": "node",
     "baseUrl": "./",
-    "rootDir": "./",
-    "outDir": "./",
+    "rootDir": "./src",                             
+    "outDir": "./dist",                             
     "resolveJsonModule": true,
     "strict": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "types": ["node"],
-    "allowJs": true,
-    "noImplicitAny": true,
-    "paths": {
-      "*": ["node_modules/*"]
-    }
+    "allowJs": false,                                
+    "noImplicitAny": true
   },
-  "include": ["*.ts", "**/*.ts"],
+  "include": ["src/**/*.ts"],                        
   "exclude": ["node_modules"]
 }

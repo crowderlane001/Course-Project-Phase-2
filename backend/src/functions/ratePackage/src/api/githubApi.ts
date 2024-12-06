@@ -203,8 +203,10 @@ export const checkFolderExists = async (
       if (response.status === 200) {
         return true
       } else if (response.status === 404) {
+        console.error("checkfolder 404 error")
         return false
       } else {
+        console.error("checkfolder other error")
         return false
       }
     } catch (error) {
@@ -249,6 +251,7 @@ export const getReadmeDetails = async (
             return 0.5;
         }
     } catch (error) {
+        console.log("Error in getReadmeDetails")
         console.error(error)
         return -1;
     }

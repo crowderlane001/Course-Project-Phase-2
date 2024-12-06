@@ -8,7 +8,7 @@ export const fetchGithubUrlFromNpm = async (packageName: string): Promise<ApiRes
     const response = await apiGetRequest<NpmApiResponse>(url);
 
     if (response.error || !response.data || !response.data.repository || !response.data.repository.url) {
-        return { data: null, error: 'Repository URL not found' };
+        return { data: null, error: 'NPM to Github Repository URL not found' };
     }
 
     let repoUrl: string = response.data.repository.url.replace(/^git\+/, '').replace(/\.git$/, '');
