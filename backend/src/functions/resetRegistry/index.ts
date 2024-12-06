@@ -2,16 +2,41 @@ import { DynamoDBClient, ScanCommand, DeleteItemCommand } from '@aws-sdk/client-
 import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import * as jwt from 'jsonwebtoken';
 
 const dynamodb = new DynamoDBClient({});
 const s3Client = new S3Client({});
 const TABLE_NAME = "PackageRegistry";
 const BUCKET_NAME = "storage-phase-2";
+const JWT_SECRET = '1b7e4f8a9c2d1e6m3k5p9q8r7t2y4x6zew';
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+
+  const token = event.headers['X-Authorization']?.split(' ')[1];
+
+  if (!token) {
+    return {
+      statusCode: 403,
+      body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+    };
+  }
+
+  try {
+    // Verify the JWT
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    console.log('Token is valid:', decoded);
+  } catch (err) {
+    console.error('Token verification failed:', err);
+
+    return {
+      statusCode: 403,
+      body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+    };
+  }
+
   try {
     console.log('Starting bulk deletion process');
-    console.log('hellossewew');
     // First, scan DynamoDB table to get all ite
     const scanParams = {
       TableName: TABLE_NAME
@@ -75,6 +100,12 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     
     return {
       statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "http://localhost:5173", // Allow requests from your frontend
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS", // Allow HTTP methods
+        "Access-Control-Allow-Headers": "Content-Type, Authorization", // Allow headers
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({
         message: 'Bulk deletion completed',
         summary: {

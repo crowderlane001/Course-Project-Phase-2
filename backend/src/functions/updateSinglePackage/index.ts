@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { boolean, z } from 'zod';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { DynamoDBClient, QueryCommand, PutItemCommand, GetItemCommand, AttributeValue } from '@aws-sdk/client-dynamodb';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
@@ -302,24 +302,25 @@ export async function handler(
     if (!event.body) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ description: 'There1 is missing field(s) in the PackageData or it is formed improperly (e.g. Content and URL ar both set)' })
+        body: JSON.stringify({ description: 'There is missing field(s) in the PackageID or it is formed improperly, or is invalid.' })
       };
     }
 
     const packageId = event.pathParameters?.id;
 
     const body = JSON.parse(event.body);
+    console.log("Body!~~~~~~~!!!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    console.log(body);
     const newPackageData = PackageSchema.safeParse(body);
     
-
     if (!newPackageData.success) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ description: 'There2 is missing field(s) in the PackageData or it is formed improperly (e.g. Content and URL ar both set)' })
+        body: JSON.stringify({ description: 'There is missing field(s) in the PackageID or it is formed improperly, or is invalid.' })
       };
     }
     const newVersion = newPackageData.data.metadata.Version;
-
+    let checkURL = !!newPackageData.data.data.URL;
 
     if (!packageId || !newPackageData.data.metadata || !newVersion) {
       return {
@@ -334,7 +335,7 @@ export async function handler(
       return {
         statusCode: 404,
         body: JSON.stringify({
-          message: 'Package not found'
+          message: 'Package does not exist.'
         })
       };
     }
@@ -342,13 +343,13 @@ export async function handler(
 
     const prevName = unitem.Name;
     const prevVersion = unitem.Version;
-    const prevURLCheck = unitem.URL;
+    // const prevURLCheck = unitem.URL;
 
-    let checkURL = false;
+    // let checkURL = false;
 
-    if (prevURLCheck){
-      checkURL = true;
-    }
+    // if (prevURLCheck){
+    //   checkURL = true;
+    // }
 
     //make sure new package is same name, different version, and same upload type
 
@@ -356,7 +357,7 @@ export async function handler(
       return {
         statusCode: 404,
         body: JSON.stringify({
-          message: 'Package not found'
+          message: 'Package does not exist.'
         })
       };
     }
@@ -367,7 +368,7 @@ export async function handler(
     if (!canUpload) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ description: 'There is missing field(s) in the PackageData or it is formed improperly (e.g. Content and URL ar both set)' })
+        body: JSON.stringify({ description: 'There is missing field(s) in the PackageID or it is formed improperly, or is invalid.' })
       };
     }
     const packageInfo = newPackageData.data;
@@ -384,8 +385,8 @@ export async function handler(
     const exists = await checkPackageExists(metadata.Name, metadata.Version);
     if (exists) {
       return {
-        statusCode: 409,
-        body: JSON.stringify({ error: 'Package already exists' })
+        statusCode: 404,
+        body: JSON.stringify({ error: 'There is missing field(s) in the PackageID or it is formed improperly, or is invalid.' })
       };
     }
 
@@ -401,7 +402,13 @@ export async function handler(
     // await storePackageMetadata(metadata, data.data, s3Key);
     await storePackageMetadata(metadata, { ...packageInfo.data, URL: packageInfo.data.URL || "" }, result.s3Key);
     return {
-      statusCode: 201,
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "http://localhost:5173", // Allow requests from your frontend
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS", // Allow HTTP methods
+        "Access-Control-Allow-Headers": "Content-Type, Authorization", // Allow headers
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify( {
         message: "Version is updated."
       })
