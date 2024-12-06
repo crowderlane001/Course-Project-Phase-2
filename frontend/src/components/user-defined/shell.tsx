@@ -16,7 +16,6 @@ import Logo from "./logo";
 import LoginButton from "./login-button";
 import LogOutButton from "./log-out";
 import React from "react";
-import { ScrollArea } from "../ui/scroll-area";
 
 interface ShellProps {
   children: React.ReactNode;
@@ -32,7 +31,7 @@ export function Shell({ children }: ShellProps) {
   }
 
   return (
-    <div className="grid h-screen max-h-[2000px] overflow-hidden shadow w-full md:grid-cols-[220px_1fr] lg:grid-cols-[200px_1fr]">
+    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[200px_1fr]">
       <div className="hidden border-r bg-muted/40 md:block">
         <div className="flex h-full max-h-screen flex-col gap-2" style={{ maxWidth: '200px !important' }}>
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
@@ -138,17 +137,13 @@ export function Shell({ children }: ShellProps) {
               </LoginButton>}
           </div>
         </header>
-        <div className="h-full max-h-[2000px] flex-col flex shadow">
-          <ScrollArea className="flex-1">
-            <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 relative w-[100%] items-center">
+        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 relative w-[100%] items-center">
 
-              <div className="w-[100%] max-w-[900px]">
-                {children}
-              </div>
+          <div className="w-[100%] max-w-[900px]">
+            {children}
+          </div>
 
-            </main>
-          </ScrollArea>
-        </div>
+        </main>
       </div>
     </div>
   );
