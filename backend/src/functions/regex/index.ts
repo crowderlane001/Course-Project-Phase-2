@@ -112,7 +112,7 @@ function hasBacktrackingRisk(pattern: string): boolean {
     const problematicPatterns = [
         /\(.*?\)\{\d+,\d+\}/, // Nested quantifiers, e.g., (a{1,99999}){1,99999}
         /\(.*?\)\(.*?\)/, // Multiple nested capturing groups, e.g., (a*)(a*)
-        /.*?\*.*?\*/, // Overlapping quantifiers, e.g., (a|aa)*$
+        /(\([^|()]*\|[^|()]*\))\*/, // Overlapping quantifiers, e.g., (a|aa)*$
     ];
 
     for (const problematicPattern of problematicPatterns) {
@@ -194,8 +194,6 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
             };
         }
 
-        // const filteredItems = [];
-        // const timeout = 1000; // 1 second timeout for regex operations
         const filteredItems = scanResult.Items.filter((item) => {
             const name = item.Name || "";
             return regex.test(name);
