@@ -10,8 +10,6 @@ import { Shell } from "./components/user-defined/shell";
 import { TransitionGroup, CSSTransition } from "react-transition-group";
 import Packages from "./pages/Packages";
 import React, { useEffect } from "react";
-import Members from "./pages/Members";
-import Analytics from "./pages/Analytics";
 import { useUserManager } from "./hooks/use-usermanager";
 import RouteBlocker from "./pages/RouteBlocker";
 import PackageDetails from "./pages/PackageDetails";
@@ -19,9 +17,7 @@ import NotFound from "./pages/404";
 import Cookies from "js-cookie";
 import User from "./models/user-model";
 import SearchResults from "./pages/SearchResults";
-import { usePackageManager } from "./hooks/use-packagemanager";
 import API from "./api/api";
-import Package from "./models/package";
 import { Toaster } from "./components/ui/toaster";
 
 
@@ -31,10 +27,6 @@ function initialize(setUser: (user: User | null) => void) {
   if (cookie) {
     const user: User = JSON.parse(cookie);
     setUser(user);
-    const headers = {
-      "Content-Type": "application/json",
-      "X-Authorization": user?.token
-    };
 
     const packagesApi = new API("https://med4k766h1.execute-api.us-east-1.amazonaws.com/dev");
     packagesApi.post("/packages", [{ Name: "*" }])

@@ -69,7 +69,7 @@ export function UploadFormZip() {
         }
 
         api.post("/package", formData, headers)
-            .then((response) => {
+            .then(() => {
                 toast({
                     title: "Success",
                     description: "Package uploaded successfully",
@@ -79,7 +79,7 @@ export function UploadFormZip() {
                     closeRef.current.click();
                 }
             })
-            .catch((error) => {
+            .catch(() => {
                 toast({
                     title: "Error",
                     description: "An error occurred while uploading the package",

@@ -1,12 +1,10 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   Home,
-  LineChart,
   Menu,
   Package,
   Package2,
   Search,
-  Users,
 } from "lucide-react";
 
 import { useUserManager } from "@/hooks/use-usermanager";

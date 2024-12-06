@@ -7,7 +7,7 @@ import Package from "@/models/package";
 
 const PackageList: React.FC = () => {
     const { packages, setPackages } = usePackageManager();
-    const [loading, setLoading] = useState(true);
+    const [loading] = useState(true);
 
  
 
