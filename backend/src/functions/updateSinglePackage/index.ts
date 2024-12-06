@@ -329,6 +329,10 @@ export async function handler(
       };
     }
 
+    console.log("~~~~~~~~~~~~~~~~~~~~~~Prev ID~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    console.log(packageId)
+    console.log("~~~~~~~~~~~~~~~~~~~~~~Prev ID~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+
     const getPackage = await getPackageById(packageId);
 
     if (!getPackage) {
@@ -343,6 +347,7 @@ export async function handler(
 
     const prevName = unitem.Name;
     const prevVersion = unitem.Version;
+    const prevId = unitem.ID;
     // const prevURLCheck = unitem.URL;
 
     // let checkURL = false;
@@ -387,6 +392,11 @@ export async function handler(
       Version: packageInfo.metadata.Version,
       ID: packageInfo.metadata.ID
     };
+
+    console.log("~~~~~~~~~~~~~~~~~~~~~~Stored ID~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    console.log(packageInfo.metadata.ID)
+    console.log("~~~~~~~~~~~~~~~~~~~~~~Stored ID~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+
 
     // Store package content and metadata
     // ... (rest of your existing code)
