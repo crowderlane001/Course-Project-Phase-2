@@ -16,6 +16,12 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import Cookies from "js-cookie";
+import zxcvbn from "zxcvbn";
+import API from "@/api/api";
+import { useEffect, useState } from "react";
+import { Progress } from "../ui/progress";
+import Spinner from "./spinner";
+import { toast } from "@/hooks/use-toast";
 
 const FormSchema = z.object({
     username: z.string().min(2, {
@@ -28,6 +34,9 @@ const FormSchema = z.object({
 
 export function LoginForm() {
     const { setUser } = useUserManager();
+    const [passwordStrength, setPasswordStrength] = useState<number>(0);
+    const [isPassword, setIsPassword] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
@@ -37,9 +46,50 @@ export function LoginForm() {
         },
     })
 
-    function onSubmit(data: z.infer<typeof FormSchema>) {
-        const { username } = data;
-        const user = new User({ token: "1234", username });
+
+    const getToken = async (username: string, password: string): Promise<string> => {
+        const api = new API("https://med4k766h1.execute-api.us-east-1.amazonaws.com/dev");
+
+        let isAdmin: boolean = false;
+        const adminRegexOnUsername = /admin_/i;
+
+        if (adminRegexOnUsername.test(username)) {
+            isAdmin = true;
+        }
+
+        const data = {
+            "User": {
+                "name": username,
+                "isAdmin": isAdmin,
+            },
+            "Secret": {
+                "password": password,
+            }
+        }
+
+        const response = await api.put("/authenticate", data);
+        return response;
+    }
+
+    const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const password = event.target.value;
+        if(password.length > 0) {
+            setIsPassword(true);
+        }
+        const result: zxcvbn.ZXCVBNResult = zxcvbn(password);
+        console.log(result);
+        setPasswordStrength(result.score);
+        form.setValue("password", password);
+    }
+
+
+    async function onSubmit(data: z.infer<typeof FormSchema>) {
+        setIsLoading(true);
+        const { username, password } = data;
+        try {
+        const token: string = await getToken(username, password);
+        const user = new User({ token: token, username });
+
         setUser(user);
         Cookies.set("user", JSON.stringify(user), {
             expires: 1,
@@ -47,9 +97,17 @@ export function LoginForm() {
             secure: true,
             sameSite: "strict",
         });
-        const token = Cookies.get("user");
-        console.log(token);
+        } catch (error) {
+            toast({ title: "Failure", description: "Could not log in, try again." });
+        }
+        setIsLoading(false);
     }
+
+    useEffect(() => {}, [isLoading]);
+
+    const passwordMap: string[] = ["Very Weak", "Weak", "Fair", "Strong", "Very Strong"];
+
+    const colorMap: string[] = ["red", "orange", "yellow", "green", "darkgreen"];
 
     return (
         <Form {...form}>
@@ -69,18 +127,37 @@ export function LoginForm() {
                 />
                 <FormField
                     control={form.control}
+
                     name="password"
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel>Password</FormLabel>
                             <FormControl>
-                                <Input className="text-base" type="password" placeholder="Enter password" {...field} />
+                                <Input
+                                    className="text-base"
+                                    type="password"
+                                    placeholder="Enter password"
+                                    onChange={(e) => {
+                                        field.onChange(e);
+                                        handlePasswordChange(e);
+                                    }}
+                                    value={field.value}
+                                    name={field.name}
+                                    ref={field.ref}
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
-                <Button type="submit">Submit</Button>
+                {
+                    isPassword ? 
+                    <div>
+                        <p>Password strength: {passwordMap[passwordStrength]}</p>
+                        <Progress value={((passwordStrength + 1) / 5) * 100} max={4} barColor={colorMap[passwordStrength]} className="bg-gray-400"/>
+                    </div> : null
+                }
+                {isLoading ? <Spinner /> : <Button type="submit" disabled={passwordStrength < 4}>Submit</Button>}
             </form>
         </Form>
     )

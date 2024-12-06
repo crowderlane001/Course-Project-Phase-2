@@ -3,24 +3,37 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { usePackageManager } from "@/hooks/use-packagemanager";
 import { Link } from "react-router-dom";
 import { Skeleton } from "../ui/skeleton";
+import Package from "@/models/package";
 
 const PackageList: React.FC = () => {
-    const { packages } = usePackageManager();
+    const { packages, setPackages } = usePackageManager();
     const [loading, setLoading] = useState(true);
 
+ 
+
     useEffect(() => {
-        if (packages === null || packages.size === 0) {
-            const timeoutId = setTimeout(() => {
-                setLoading(false);
-            }, 1000);
-
-            return () => clearTimeout(timeoutId); // Cleanup the timeout if the component unmounts
-        } else {
-            setLoading(false);
+        const packArray: Package[] = [];
+        for(let i = 0; i < 100; i++) {
+            const pack = new Package(`package-${i}`, `Package ${i}`, `1.0.0`);
+            packArray.push(pack);
         }
-    }, [packages]);
+        setPackages(packArray);
+    }, [setPackages]);
 
-    if (loading) {
+
+    // useEffect(() => {
+    //     if (packages === null || packages.size === 0) {
+    //         const timeoutId = setTimeout(() => {
+    //             setLoading(false);
+    //         }, 1000);
+
+    //         return () => clearTimeout(timeoutId); // Cleanup the timeout if the component unmounts
+    //     } else {
+    //         setLoading(false);
+    //     }
+    // }, [packages]);
+
+    if (!loading) {
         return (
             <div className="flex flex-col gap-5">
                 <Skeleton className="w-full h-10" />

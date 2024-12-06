@@ -41,7 +41,6 @@ const Base64Unzipper: React.FC<Base64UnzipperProps> = ({ base64Zip }) => {
 
             setFiles(extractedFiles);
         } catch (error) {
-            console.error("Error unzipping Base64 file:", error);
         }
 
         setIsDone(true);

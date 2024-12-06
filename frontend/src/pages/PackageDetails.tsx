@@ -1,12 +1,13 @@
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Page from "@/components/user-defined/page";
-import { useParams } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import { usePackageManager } from "@/hooks/use-packagemanager";
+import { useUserManager } from "@/hooks/use-usermanager";
 import Base64Unzipper from "@/components/user-defined/base64-decoder";
 import API from "@/api/api";
-import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface PackageDetailsProps {
@@ -20,49 +21,56 @@ function PackageDetails({ isResult = false }: PackageDetailsProps) {
     const [isContent, setIsContent] = useState<boolean>(true);
     const [rating, setRating] = useState<number | string | null>(null);
     const [cost, setCost] = useState<number | null>(null);
+    const { user } = useUserManager();
 
     const api = new API("https://med4k766h1.execute-api.us-east-1.amazonaws.com/dev");
 
+    const headers = {
+        "Content-Type": "application/json",
+        "X-Authorization": user?.token
+    }
+
     const getPackageMeta = async () => {
-        const response = await api.get(`/package/${id}`);
+        const response = await api.get(`/package/${id}`, headers);
         if (response.data.Content !== '') {
             setPackageContent(response.data.Content);
             setIsContent(true);
         } else {
             setPackageContent(response.data.URL);
         }
-    }
+    };
 
     const getRate = async () => {
-        const response = await api.get(`/package/${id}/rate`);
+        const response = await api.get(`/package/${id}/rate`, headers);
         if (isContent) {
             setRating(response[id!].Rating);
         } else {
             setRating("Not available");
         }
-    }
+    };
 
     const getCost = async () => {
-        const response = await api.get(`/package/${id}/cost`);
-        setCost(response[id!].Cost);
-    }
+        const response = await api.get(`/package/${id}/cost`, headers);
+        setCost(response[id!].totalCost);
+    };
 
     useEffect(() => {
-        getPackageMeta();
-        getRate();
-        getCost();
+        if (id) {
+            getPackageMeta();
+            getRate();
+            getCost();
+        }
     }, []);
 
-
-    const spacer = <div className="w-3 h-1"></div>
+    const spacer = <div className="w-3 h-1"></div>;
     const packageFromId = packages.get(id ?? "");
     if (!packageFromId) {
-        return <div>Package not found</div>
+        return <div>Package not found</div>;
     }
 
     const handleBack = () => {
         window.history.back();
-    }
+    };
 
     return (
         <div>
@@ -94,11 +102,11 @@ function PackageDetails({ isResult = false }: PackageDetailsProps) {
                                         <div className="relative min-h-[200px] flex flex-col">
                                             <div className="flex-1 w-full">
                                                 <p className="text-sm text-gray-400">Package rating</p>
-                                                {rating ? rating : <Skeleton className="w-[100px] h-7 " />}
+                                                {rating !== null ? rating : <Skeleton className="w-[100px] h-7 " />}
                                             </div>
                                             <div className="flex-1 w-full">
                                                 <p className="text-sm text-gray-400">Package cost</p>
-                                                {cost ? cost : <Skeleton className="w-[100px] h-7 " />}
+                                                {cost !== null ? cost : <Skeleton className="w-[100px] h-7 " />}
                                             </div>
                                         </div>
                                     </CardContent>
