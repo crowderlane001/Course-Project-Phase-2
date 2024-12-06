@@ -58,7 +58,7 @@ export function UploadFormUrl() {
         };
 
         api.post("/package", packageUpload, headers)
-            .then((response) => {
+            .then(() => {
                 toast({
                     title: "Success",
                     description: "Package uploaded successfully",
@@ -68,7 +68,7 @@ export function UploadFormUrl() {
                     closeRef.current.click();
                 }
             })
-            .catch((error) => {
+            .catch(() => {
                 toast({
                     title: "Error",
                     description: "An error occurred while uploading the package",
