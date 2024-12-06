@@ -10,8 +10,6 @@ import { Shell } from "./components/user-defined/shell";
 import { TransitionGroup, CSSTransition } from "react-transition-group";
 import Packages from "./pages/Packages";
 import React, { useEffect } from "react";
-import Members from "./pages/Members";
-import Analytics from "./pages/Analytics";
 import { useUserManager } from "./hooks/use-usermanager";
 import RouteBlocker from "./pages/RouteBlocker";
 import PackageDetails from "./pages/PackageDetails";
@@ -19,39 +17,38 @@ import NotFound from "./pages/404";
 import Cookies from "js-cookie";
 import User from "./models/user-model";
 import SearchResults from "./pages/SearchResults";
-import { usePackageManager } from "./hooks/use-packagemanager";
 import API from "./api/api";
-import Package from "./models/package";
+import { Toaster } from "./components/ui/toaster";
 
 
-function initialize(setUser: (user: User | null) => void, setPackages: (packages: Package[]) => void) {
+function initialize(setUser: (user: User | null) => void) {
   console.log("Initializing...");
   const cookie = Cookies.get("user");
   if (cookie) {
     const user: User = JSON.parse(cookie);
     setUser(user);
+
+    const packagesApi = new API("https://med4k766h1.execute-api.us-east-1.amazonaws.com/dev");
+    packagesApi.post("/packages", [{ Name: "*" }])
+    .catch((error) => {
+      console.error("Error fetching data: ", error);
+      Cookies.remove("user");
+      setUser(null);
+    });
   }
 
-  const packagesApi = new API("https://med4k766h1.execute-api.us-east-1.amazonaws.com/dev");
-  packagesApi.post("/packages", [{ Name: "*" }])
-    .then((response) => {
-      const packages = response.map((pkg: any) => new Package(pkg.ID, pkg.Name, pkg.Version));
-      setPackages(packages);
-    })
-    .catch((error) => {
-      console.error("Error fetching packages: ", error);
-    });
+  
 }
 
 function App() {
   const { setUser } = useUserManager();
-  const { setPackages } = usePackageManager();
   useEffect(() => {
-    initialize(setUser, setPackages);
+    initialize(setUser);
   }, []);
 
   return (
     <Router>
+       <Toaster />
       <AppContent />
     </Router>
   );
@@ -86,16 +83,14 @@ function AppContent() {
         <CSSTransition
           key={location.pathname}
           nodeRef={getNodeRef(location.pathname)}
+          timeout={300}
           classNames="page"
-          timeout={500}
           unmountOnExit
         >
           <div ref={getNodeRef(location.pathname)}>
             <Routes location={location}>
               <Route path="/" element={<Home />} />
               <Route path="/packages" element={user ? <Packages /> : <RouteBlocker />} />
-              <Route path="/members" element={user ? <Members /> : <RouteBlocker />} />
-              <Route path="/analytics" element={user ? <Analytics /> : <RouteBlocker />} />
               <Route path="/packages/:id" element={user ? <PackageDetails /> : <RouteBlocker />} />
               <Route path="/packages/results/:id" element={user ? <PackageDetails isResult /> : <RouteBlocker />} />
               <Route path="/search/:query" element={user ? <SearchResults /> : <RouteBlocker />} />
