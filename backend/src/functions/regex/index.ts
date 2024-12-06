@@ -100,15 +100,32 @@ import { DynamoDBDocumentClient, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayEvent, Context } from "aws-lambda";
 import * as jwt from 'jsonwebtoken';
 const JWT_SECRET = '1b7e4f8a9c2d1e6m3k5p9q8r7t2y4x6zew';
-
-// Create a DynamoDB client instance
-const dynamoClient = new DynamoDBClient({ region: "us-east-1" });
-
-// Create a DynamoDBDocumentClient instance from the low-level DynamoDBClient
-const documentClient = DynamoDBDocumentClient.from(dynamoClient);
-
-// Define the DynamoDB table name
+const documentClient = new DynamoDBClient({});
 const TABLE_NAME = "PackageRegistry";
+
+function hasBacktrackingRisk(pattern: string): boolean {
+    // Check for common patterns that can cause catastrophic backtracking
+    const riskyPatterns = [
+        /(\w+)\1+/,                    // Repeated groups
+        /([^]*)(\1)+/,                 // Nested quantifiers
+        /(.*){2,}/,                    // Multiple unbounded quantifiers
+        /(.+)+/,                       // Repeated plus quantifier
+        /(\w+)*\w+/,                   // Star quantifier followed by plus
+        /([a-z]+)*([a-z]+)*/i,        // Multiple star quantifiers
+        /(\b\w+\b\s*)+/,              // Repeated word boundaries
+        /^(.*?)*$/,                    // Unbounded lookbehind-like pattern
+    ];
+
+    // Check for excessive nesting of groups
+    const nestedGroups = (pattern.match(/\(/g) || []).length;
+    if (nestedGroups > 3) return true;
+
+    // Check for multiple adjacent quantifiers
+    if (/[+*?]{2,}/.test(pattern)) return true;
+
+    // Check pattern against known risky patterns
+    return riskyPatterns.some(riskyPattern => riskyPattern.test(pattern));
+}
 
 export const handler = async (event: APIGatewayEvent, context: Context) => {
     const token = event.headers['X-Authorization']?.split(' ')[1];
@@ -148,6 +165,15 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
             };
         }
 
+        if (hasBacktrackingRisk(pattern)) {
+            return {
+                statusCode: 400,
+                body: JSON.stringify({
+                    message: "The provided regex pattern has potential backtracking issues and is not allowed for security reasons.",
+                }),
+            };
+        }
+
         let regex: RegExp;
         try {
             regex = new RegExp(pattern, "i"); // Create a case-insensitive regex
@@ -160,7 +186,6 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
         }
 
         // Scan the table for all items using the DocumentClient
-
         //backtracking in regex 400 where its bad
 
         const scanCommand = new ScanCommand({
