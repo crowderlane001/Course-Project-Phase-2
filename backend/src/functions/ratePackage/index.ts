@@ -281,17 +281,12 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     };
   } catch (error) {
     console.error("Error:", error);
-
     return {
       statusCode: 500,
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify({
-        error: {
-          "Internal Server Error",
-        },
-      }),
+        message: 'Internal server error during bulk deletion',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      })
     };
   }
 };
