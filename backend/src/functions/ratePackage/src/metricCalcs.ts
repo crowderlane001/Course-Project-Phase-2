@@ -8,38 +8,33 @@ import * as path from 'path';
 import { exec } from 'child_process';
 
 export const cloner = async (repoUrl: string, localDir: string): Promise<null> => {
-    // // Check if the directory exists and delete it if it does (force behavior)
-    // try {
-    //     // Read all files and subdirectories inside the given directory
-    //     const files = fs.readdirSync(localDir);
+    const tmpDir = '/tmp';
+    const fullPath = path.join(tmpDir, localDir);  // Combine /tmp with the provided localDir
 
-    //     // Iterate over each file/subdirectory
-    //     for (const file of files) {
-    //         const currentPath = path.join(localDir, file);
-    //         const stat = fs.statSync(currentPath);
+    try {
+        // Check if the directory exists (do not delete or alter contents)
+        const dirExists = fs.existsSync(fullPath);
+        
+        // If the directory exists, skip cloning
+        if (dirExists) {
+            console.log(`Directory ${fullPath} already exists. Skipping clone.`);
+            return null; // Skip cloning if directory already exists
+        }
 
-    //         // If it's a directory, delete the directory (non-recursive)
-    //         if (stat.isDirectory()) {
-    //             fs.rmdirSync(currentPath); // Remove the empty directory
-    //         } else {
-    //             // If it's a file, delete it
-    //             fs.unlinkSync(currentPath);
-    //         }
-    //     }
-    //     console.log(`Contents of directory ${localDir} have been deleted.`);
-    // } catch (err) {
-    //     console.error(`Error deleting contents of ${localDir}:`, err);
-    // }
-    exec(`rm -rf /tmp/*`);
-    
-    await clone({
-        fs,
-        http,
-        dir: localDir,
-        url: repoUrl,
-        singleBranch: true,
-        depth: 1
-    });
+        // Clone the repository into the local directory
+        await clone({
+            fs,
+            http,
+            dir: fullPath,
+            url: repoUrl,
+            singleBranch: true,
+            depth: 1
+        });
+        
+        console.log(`Repository cloned into ${fullPath}`);
+    } catch (err) {
+        console.error(`Error handling the repository at ${fullPath}:`, err);
+    }
 
     return null;
 }

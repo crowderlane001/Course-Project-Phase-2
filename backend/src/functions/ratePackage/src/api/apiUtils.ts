@@ -34,7 +34,7 @@ export const apiGetRequest = async <T>(
         }
         
         console.error('Error details:', error.response?.data || error.message || error);
-        return { data: null, error: error.response?.data?.message || error.message || 'Something went wrong' };
+        return { data: null, error: error.response?.data?.message || error.message || 'apigetrequest error' };
     }
 };
 
@@ -56,6 +56,6 @@ export const apiPostRequest = async <T>(
         return { data: response.data, error: null };
     } catch (error: any) {
         console.error('Error details:', error.response?.data || error.message || error);
-        return { data: null, error: error.response?.data?.message || error.message || 'Something went wrong' };
+        return { data: null, error: error.response?.data?.message || error.message || 'apipostrequest error' };
     }
 };

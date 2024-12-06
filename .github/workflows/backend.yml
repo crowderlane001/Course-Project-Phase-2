@@ -62,7 +62,7 @@ jobs:
               # Add .env file only for ratePackage
               if [[ "$folder" == "ratePackage" ]]; then
                 echo "Adding .env file with GitHub token for ratePackage..."
-                echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" > .env
+                echo "GITHUB_TOKEN=${{ secrets.LEO_GITHUB_TOKEN }}" > .env
               fi
 
               # Install dependencies including TypeScript
