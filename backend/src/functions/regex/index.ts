@@ -100,31 +100,29 @@ import { DynamoDBDocumentClient, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayEvent, Context } from "aws-lambda";
 import * as jwt from 'jsonwebtoken';
 const JWT_SECRET = '1b7e4f8a9c2d1e6m3k5p9q8r7t2y4x6zew';
-const documentClient = new DynamoDBClient({});
+const dynamoClient = new DynamoDBClient({ region: "us-east-1" });
+
+// Create a DynamoDBDocumentClient instance from the low-level DynamoDBClient
+const documentClient = DynamoDBDocumentClient.from(dynamoClient);
+
 const TABLE_NAME = "PackageRegistry";
 
 function hasBacktrackingRisk(pattern: string): boolean {
-    // Check for common patterns that can cause catastrophic backtracking
-    const riskyPatterns = [
-        /(\w+)\1+/,                    // Repeated groups
-        /([^]*)(\1)+/,                 // Nested quantifiers
-        /(.*){2,}/,                    // Multiple unbounded quantifiers
-        /(.+)+/,                       // Repeated plus quantifier
-        /(\w+)*\w+/,                   // Star quantifier followed by plus
-        /([a-z]+)*([a-z]+)*/i,        // Multiple star quantifiers
-        /(\b\w+\b\s*)+/,              // Repeated word boundaries
-        /^(.*?)*$/,                    // Unbounded lookbehind-like pattern
+    // Patterns known to cause backtracking issues
+    const problematicPatterns = [
+        /\(.*?\)\{\d+,\d+\}/, // Nested quantifiers, e.g., (a{1,99999}){1,99999}
+        /\(.*?\)\(.*?\)/, // Multiple nested capturing groups, e.g., (a*)(a*)
+        /.*?\*.*?\*/, // Overlapping quantifiers, e.g., (a|aa)*$
     ];
 
-    // Check for excessive nesting of groups
-    const nestedGroups = (pattern.match(/\(/g) || []).length;
-    if (nestedGroups > 3) return true;
+    for (const problematicPattern of problematicPatterns) {
+        if (problematicPattern.test(pattern)) {
+            console.warn("Potential backtracking risk detected:", pattern);
+            return true;
+        }
+    }
 
-    // Check for multiple adjacent quantifiers
-    if (/[+*?]{2,}/.test(pattern)) return true;
-
-    // Check pattern against known risky patterns
-    return riskyPatterns.some(riskyPattern => riskyPattern.test(pattern));
+    return false;
 }
 
 export const handler = async (event: APIGatewayEvent, context: Context) => {
@@ -179,19 +177,8 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
             };
         }
 
-        let regex: RegExp;
-        try {
-            regex = new RegExp(pattern, "i"); // Create a case-insensitive regex
-        } catch (err) {
-            console.error("Invalid regex pattern:", err);
-            return {
-                statusCode: 400,
-                body: JSON.stringify({ message: "There is missing field(s) in the PackageRegEx or it is formed improperly, or is invalid" }),
-            };
-        }
+        const regex = new RegExp(pattern, "i");
 
-        // Scan the table for all items using the DocumentClient
-        //backtracking in regex 400 where its bad
 
         const scanCommand = new ScanCommand({
             TableName: TABLE_NAME,
@@ -207,41 +194,24 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
             };
         }
 
-        const filteredItems = [];
-        const timeout = 1000; // 1 second timeout for regex operations
-    
-        for (const item of scanResult.Items) {
+        // const filteredItems = [];
+        // const timeout = 1000; // 1 second timeout for regex operations
+        const filteredItems = scanResult.Items.filter((item) => {
             const name = item.Name || "";
-            let match = false;
-    
-            try {
-                const start = Date.now();
-                match = regex.test(name);
-                const duration = Date.now() - start;
-    
-                if (duration > timeout) {
-                    throw new Error("Regex operation timed out");
-                }
-            } catch (err) {
-                console.error("Regex operation failed:", err);
-                return {
-                    statusCode: 400,
-                    body: JSON.stringify({ message: "Regex operation failed due to backtracking or excessive length" }),
-                };
+            return regex.test(name);
+        }).map((item) => {
+            if (!item.Name || !item.Version || !item.ID) {
+                console.warn(
+                    `Skipping invalid item: ${JSON.stringify(item)}`
+                );
+                return null; // Exclude invalid items
             }
-    
-            if (match) {
-                if (!item.Name || !item.Version || !item.ID) {
-                    console.warn(`Skipping invalid item: ${JSON.stringify(item)}`);
-                    continue; // Exclude invalid items
-                }
-                filteredItems.push({
-                    Name: item.Name, // Expected to exist
-                    Version: item.Version, // Expected to exist
-                    ID: item.ID, // Expected to exist
-                });
-            }
-        }
+            return {
+                Name: item.Name, // Expected to exist
+                Version: item.Version, // Expected to exist
+                ID: item.ID, // Expected to exist
+            };
+        }).filter((item) => item !== null); // Remove nulls
 
         // Respond with the filtered items
         return {
