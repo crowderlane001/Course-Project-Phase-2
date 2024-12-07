@@ -256,9 +256,9 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
     return {
       statusCode: 200,
       headers: {
-        "Access-Control-Allow-Origin": "http://localhost:5173", // Allow requests from your frontend
+        "Access-Control-Allow-Origin": "*", // Allow requests from your frontend
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS", // Allow HTTP methods
-        "Access-Control-Allow-Headers": "Content-Type, Authorization", // Allow headers
+        "Access-Control-Allow-Headers": "Content-Type, X-Authorization", // Allow headers
       },
       body: JSON.stringify(formattedResults),
     };

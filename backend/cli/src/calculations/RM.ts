@@ -47,6 +47,10 @@ export const calcResponsivenessScore = (
 };
 
 export function calcResponsiveness(repoData: ApiResponse<GraphQLResponse | null>): number {
+    if(!repoData.data?.data.repository){
+        return 0.0;
+    }
+
     const recentPullRequests = repoData.data?.data.repository.pullRequests;
     const isArchived = repoData.data?.data.repository.isArchived;
     const totalOpenIssues = repoData.data?.data.repository.openIssues;
@@ -54,9 +58,22 @@ export function calcResponsiveness(repoData: ApiResponse<GraphQLResponse | null>
     const oneMonthAgo = new Date();
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
-    if (!recentPullRequests?.nodes || !totalClosedIssues?.nodes || !totalOpenIssues?.nodes) {
-        return -1.0;
+    if(!recentPullRequests){
+        return 0.0;
     }
+
+    if(!totalClosedIssues){
+        return 0.0;
+    }
+
+    if(!totalOpenIssues){
+        return 1.0;
+    }   
+
+    if (!recentPullRequests?.nodes || !totalClosedIssues?.nodes || !totalOpenIssues?.nodes) {
+        return 1.0;
+    }
+
     const responsiveness = calcResponsivenessScore(totalClosedIssues.nodes, totalOpenIssues.nodes, recentPullRequests.nodes, oneMonthAgo, isArchived ?? false);
 
     return responsiveness;

@@ -48,7 +48,7 @@ program
     .argument('<file>', 'file to run')
     .description('process URL of the file to run and output metrics in NDJSON format')
     .action(async (file) => { // Make the action async
-        const { main } = require('./src/index');
+        const { main } = require('./src/indexSRC');
 
         try {
             const data = await fs.promises.readFile(file, 'utf8'); // Read file asynchronously

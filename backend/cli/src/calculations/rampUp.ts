@@ -35,7 +35,7 @@ export async function calcRampUp(repoData: ApiResponse<GraphQLResponse | null>):
     let exFolder = examplesKeys.map(key => repository?.[key]).find(folder => folder != null);
 
     // Set rampUp value
-    let rampUp = readMe?.text ? await getReadmeDetails(readMe.text, exFolder) : 0.9;
+    let rampUp = readMe?.text ? await getReadmeDetails(readMe.text, exFolder) : 0.0;
 
     return rampUp;
 }
