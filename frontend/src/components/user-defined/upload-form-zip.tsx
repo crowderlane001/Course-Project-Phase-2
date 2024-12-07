@@ -65,7 +65,7 @@ export function UploadFormZip() {
 
         const headers = {
             "Content-Type": "application/json",
-            "Authorization": user?.token
+            "X-Authorization": user?.token
         }
 
         api.post("/package", formData, headers)

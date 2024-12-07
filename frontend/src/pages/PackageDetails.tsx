@@ -24,14 +24,14 @@ function PackageDetails({ isResult = false }: PackageDetailsProps) {
     const [packageContent, setPackageContent] = useState<string | null>(null);
     const [isContent, setIsContent] = useState<boolean>(true);
     const [rating, setRating] = useState<number | string | null>(null);
-    const [cost, setCost] = useState<number | null>(null);
+    const [cost, setCost] = useState<number | string | null>(null);
     const { user } = useUserManager();
 
     const api = new API("https://med4k766h1.execute-api.us-east-1.amazonaws.com/dev");
 
     const headers = {
         "Content-Type": "application/json",
-        "Authorization": user?.token
+        "X-Authorization": user?.token
     }
 
 
@@ -59,17 +59,25 @@ function PackageDetails({ isResult = false }: PackageDetailsProps) {
     }
 
     const getRate = async () => {
-        const response = await api.get(`/package/${id}/rate`, headers);
-        if (isContent) {
-            setRating(response[id!].Rating);
-        } else {
+        try {
+            const response = await api.get(`/package/${id}/rate`, headers);
+            if (isContent) {
+                setRating(response[id!].Rating);
+            } else {
+                setRating("Not available");
+            }
+        } catch (error) {
             setRating("Not available");
         }
     };
 
     const getCost = async () => {
-        const response = await api.get(`/package/${id}/cost`, headers);
-        setCost(response[id!].totalCost);
+        try {
+            const response = await api.get(`/package/${id}/cost`, headers);
+            setCost(response[id!].totalCost);
+        } catch (error) {
+            setCost("Not available");
+        }
 
     };
 
@@ -82,7 +90,9 @@ function PackageDetails({ isResult = false }: PackageDetailsProps) {
         }
     }, []);
 
-    
+    useEffect(() => { }, [loading]);
+
+
 
 
     const spacer = <div className="w-3 h-1"></div>;

@@ -54,7 +54,7 @@ export function UploadFormUrl() {
 
         const headers = {
             "Content-Type": "application/json",
-            "Authorization": user?.token
+            "X-Authorization": user?.token
         };
 
         api.post("/package", packageUpload, headers)

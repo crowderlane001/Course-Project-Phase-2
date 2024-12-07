@@ -77,7 +77,7 @@ export function LoginForm() {
 
     const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const password = event.target.value;
-        if(password.length > 0) {
+        if (password.length > 0) {
             setIsPassword(true);
         }
         const result: zxcvbn.ZXCVBNResult = zxcvbn(password);
@@ -91,28 +91,28 @@ export function LoginForm() {
         setIsLoading(true);
         const { username, password } = data;
         try {
-        const token: string = await getToken(username, password);
-        if (token === "" || token === undefined || token === null) {
-            setIsLoading(false);
-            toast({ title: "Failure", description: "Could not log in, try again." });
-            return;
-        }
-        const user = new User({ token: token, username });
+            const token: string = await getToken(username, password);
+            if (token === "" || token === undefined || token === null) {
+                setIsLoading(false);
+                toast({ title: "Failure", description: "Could not log in, try again." });
+                return;
+            }
+            const user = new User({ token: token, username });
 
-        setUser(user);
-        Cookies.set("user", JSON.stringify(user), {
-            expires: 1,
-            path: "/",
-            secure: true,
-            sameSite: "strict",
-        });
+            setUser(user);
+            Cookies.set("user", JSON.stringify(user), {
+                expires: 1,
+                path: "/",
+                secure: true,
+                sameSite: "strict",
+            });
         } catch (error) {
             toast({ title: "Failure", description: "Could not log in, try again." });
         }
         setIsLoading(false);
     }
 
-    useEffect(() => {}, [isLoading]);
+    useEffect(() => { }, [isLoading]);
 
     const passwordMap: string[] = ["Very Weak", "Weak", "Fair", "Strong", "Very Strong"];
 
@@ -160,11 +160,11 @@ export function LoginForm() {
                     )}
                 />
                 {
-                    isPassword ? 
-                    <div>
-                        <p>Password strength: {passwordMap[passwordStrength]}</p>
-                        <Progress value={((passwordStrength + 1) / 5) * 100} max={4} barColor={colorMap[passwordStrength]} className="bg-gray-400"/>
-                    </div> : null
+                    isPassword ?
+                        <div>
+                            <p>Password strength: {passwordMap[passwordStrength]}</p>
+                            <Progress value={((passwordStrength + 1) / 5) * 100} max={4} barColor={colorMap[passwordStrength]} className="bg-gray-400" />
+                        </div> : null
                 }
                 {isLoading ? <Spinner /> : <Button type="submit" disabled={passwordStrength < 4}>Submit</Button>}
             </form>
