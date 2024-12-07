@@ -26,21 +26,16 @@ const PackageMetadataSchema = z.object({
 
 const PackageDataSchema = z.object({
   Name: z.string().optional(),
+  Version: z.string().optional(),
   Content: z.string().optional(),
   URL: z.string().url().optional(),
   debloat: z.boolean().optional(),
   JSProgram: z.string().optional(),
 }).refine(
-  data => {
-    // Check how many fields are truthy
-    const keys = [data.Name, data.Content, data.URL, data.debloat, data.JSProgram].filter(
-      value => value !== undefined // Account for undefined optional fields
-    );
-    return keys.length === 1; // Exactly one field must be set
-  },
+  data => !(data.Content && data.URL), // Fail if both are set
   {
-    message: "Exactly one of Name, Content, URL, debloat, or JSProgram must be set",
-    path: ["Name", "Content", "URL", "debloat", "JSProgram"], // Highlight all fields in errors
+    message: "Cannot provide both Content and URL in the data section",
+    path: ["Content", "URL"], // Highlight these fields in errors
   }
 );
 
