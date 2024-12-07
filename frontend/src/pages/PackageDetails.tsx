@@ -41,7 +41,8 @@ function PackageDetails({ isResult = false }: PackageDetailsProps) {
     };
 
     const getRate = async () => {
-        const response = await api.get(`/package/${id}/rate`, headers);
+        const response = await api.get(`/package/${id}/rate`, headers, 20000);
+        console.log(response)
         if (isContent) {
             setRating(response[id!].Rating);
         } else {
