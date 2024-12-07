@@ -22,7 +22,7 @@ export const fetchContributorActivity = async (
     repo: string, 
     token: string
 ): Promise<ApiResponse<ContributorResponse[] | null>> => {
-    const url = `${GITHUB_BASE_URL}/repos/${owner}/${repo}/stats/contributors`;
+    const url = `${GITHUB_BASE_URL}/tmp/${owner}/${repo}/stats/contributors`;
     const response = await apiGetRequest<ContributorResponse[]>(url, token);
 
     if (response.error) {
@@ -203,10 +203,10 @@ export const checkFolderExists = async (
       if (response.status === 200) {
         return true
       } else if (response.status === 404) {
-        // console.log("Folder does not exist.");
+        console.error("checkfolder 404 error")
         return false
       } else {
-        // console.log(`Error: ${response.status} - ${response.statusText}`);
+        console.error("checkfolder other error")
         return false
       }
     } catch (error) {
@@ -223,34 +223,35 @@ export const getReadmeDetails = async (
         const linesLength= readMe.split('\n').length;
         if(linesLength > 75) {
             if(readMe.includes('documentation') && examplesFolder != null) {
-                return 0.1;
+                return 0.9;
             } else if(readMe.includes('documentation')) {
-                return 0.2;
+                return 0.7;
             } else if(examplesFolder != null) {
-                return 0.2;  
+                return 0.6;  
             } else {
                 return 0.5;
             }
         } else if(readMe.includes('documentation') && examplesFolder != null) {
-            return 0.2;
-        } else if(readMe.includes('documentation')) {
-            return 0.3;
-        } else if(examplesFolder != null && examplesFolder.entries.length > 15) {
-            return 0.3;
-        } else if(examplesFolder != null && examplesFolder.entries.length <= 15) {
-            return 0.4;  
-        } else if(linesLength <= 5) {
-            return 0.9;
-        } else if(linesLength > 5 && linesLength <= 20) {
             return 0.8;
-        } else if (linesLength > 20 && linesLength <= 35) {
+        } else if(readMe.includes('documentation')) {
             return 0.7;
+        } else if(examplesFolder != null && examplesFolder.entries.length > 15) {
+            return 0.4;
+        } else if(examplesFolder != null && examplesFolder.entries.length <= 15) {
+            return 0.35;  
+        } else if(linesLength <= 5) {
+            return 0.1;
+        } else if(linesLength > 5 && linesLength <= 20) {
+            return 0.15;
+        } else if (linesLength > 20 && linesLength <= 35) {
+            return 0.2;
         } else if (linesLength > 35 && linesLength <= 50) {
-            return 0.6;
+            return 0.25;
         } else {
-            return 0.5;
+            return 0.3;
         }
     } catch (error) {
+        console.log("Error in getReadmeDetails")
         console.error(error)
         return -1;
     }

@@ -43,7 +43,8 @@ export async function calcBusFactor(owner: string, repo: string, token: string):
     let busFactor;
     const contributorActivity = await fetchContributorActivity(owner, repo, token);
     if (!contributorActivity?.data || !Array.isArray(contributorActivity.data)) {
-        busFactor = -1.0
+        console.log("No contributor activity data found");
+        busFactor = 0.0;
     } else {
         busFactor = calcBusFactorScore(contributorActivity.data);
     }

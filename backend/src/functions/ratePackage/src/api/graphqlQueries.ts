@@ -25,6 +25,9 @@ export const getRepoDataQuery = (owner: string, repo: string) => `
         createdAt
         updatedAt
         closedAt
+        reviews(first: 1) {
+          totalCount
+        }
       }
     }
 

@@ -7,14 +7,21 @@ export async function calcReviewedCode (repoData: ApiResponse<GraphQLResponse | 
     let reviewedPRs = 0.0;
 
     for (const pr of pullRequests) {
-        totalPRs++;
-        if (pr.reviews?.totalCount > 0) {
+        if(pr.closedAt){
+            totalPRs++;
+        }
+        // Check if `reviews` exists and is an empty array
+        if (Array.isArray(pr.reviews) && pr.reviews.length === 0) {
             reviewedPRs++;
         }
     }
 
+    console.log(pullRequests[0], pullRequests[1], pullRequests[2], pullRequests[3], pullRequests[4]);
+
+    console.log('PRs:', reviewedPRs, totalPRs);
+
     if (totalPRs === 0) {
-        return 1.0; // No PRs, return full score
+        return 0.0; // No closed PRs, 0
     }
 
     return reviewedPRs / totalPRs;

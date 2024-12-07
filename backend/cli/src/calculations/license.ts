@@ -1,21 +1,9 @@
-import { clone } from 'isomorphic-git';
 import * as fs from 'fs';
-import http from 'isomorphic-git/http/node';
 import * as path from 'path';
 
 import { hasLicenseHeading, writeFile } from "../utils/utils";
 
 export const calcLicenseScore = async (repoUrl: string, localDir: string): Promise<number> => {
-
-    await clone({
-        fs,
-        http,
-        dir: localDir,
-        url: repoUrl,
-        singleBranch: true,
-        depth: 1,
-        
-    });
   
     const licenseFilePath = `${localDir}/LICENSE`;
     const readmeFilePath = `${localDir}/README.md`;
@@ -41,7 +29,7 @@ export const calcLicenseScore = async (repoUrl: string, localDir: string): Promi
 };
 
 export async function calcLicense(owner: string, repo: string, repoURL: string): Promise<number> {
-    const localDir = path.join("./repos", `${owner}_${repo}`);
+    const localDir = path.join("./tmp", `${owner}_${repo}`);
     const license = await calcLicenseScore(repoURL, localDir);
 
     return license;

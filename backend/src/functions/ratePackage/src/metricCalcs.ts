@@ -109,7 +109,5 @@ export async function calculateMetrics(owner: string, repo: string, token: strin
         NetScoreLatency: netScore_Latency
     };
 
-    console.log(metrics)
-
     return metrics;
 }
