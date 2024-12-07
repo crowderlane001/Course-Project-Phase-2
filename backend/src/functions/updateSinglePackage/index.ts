@@ -3,12 +3,15 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { DynamoDBClient, QueryCommand, PutItemCommand, GetItemCommand, AttributeValue } from '@aws-sdk/client-dynamodb';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
+import * as jwt from 'jsonwebtoken';
+
 
 import { Buffer } from 'buffer';
 import axios from 'axios';
 /*
 Take in id via url, take in package schema, meta and dat
 check if its already there
+npm i --save-dev @types/jsonwebtoken
 check the package originally, make sure it was uploaded by content / url like before
 get all versions of the package
 check version numbers, if we can upload
@@ -45,17 +48,10 @@ const PackageSchema = z.object({
   data: PackageDataSchema,
 });
 
-const ERROR_TYPES = {
-  INVALID_REQUEST: { statusCode: 400, message: 'Invalid request parameters' },
-  AUTH_FAILED: { statusCode: 403, message: 'Authentication failed' },
-  NOT_FOUND: { statusCode: 404, message: 'Package not found' },
-  VERSION_CONFLICT: { statusCode: 400, message: 'Invalid version sequence' },
-  INGESTION_MISMATCH: { statusCode: 400, message: 'Content/URL ingestion method mismatch' }
-};
-
 const BUCKET_NAME = "storage-phase-2";
 const TABLE_NAME = "PackageRegistry";
 const GSI_NAME = "id-index";
+const JWT_SECRET = '1b7e4f8a9c2d1e6m3k5p9q8r7t2y4x6zew';
 
 // Initialize AWS clients
 const s3Client = new S3Client({});
@@ -303,6 +299,31 @@ async function validatePatchVersion(packageName: string, version: string, isURLU
 export async function handler(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
+
+  const token = event.headers['X-Authorization']?.split(' ')[1];
+
+  if (!token) {
+    return {
+      statusCode: 403,
+      body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+    };
+  }
+
+  try {
+    // Verify the JWT
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    console.log('Token is valid:', decoded);
+  } catch (err) {
+    console.error('Token verification failed:', err);
+
+    return {
+      statusCode: 403,
+      body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+    };
+  }
+
+
   try {
     if (!event.body) {
       return {
@@ -338,7 +359,7 @@ export async function handler(
     if (!packageId || !newPackageData.data.metadata || !newVersion) {
       return {
         statusCode: 400,
-        body: JSON.stringify(ERROR_TYPES.INVALID_REQUEST)
+        body: JSON.stringify({ description: 'There is missing field(s) in the PackageID or it is formed improperly, or is invalid.' })
       };
     }
 
