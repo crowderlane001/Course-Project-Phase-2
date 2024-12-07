@@ -25,15 +25,20 @@ const PackageMetadataSchema = z.object({
 });
 
 const PackageDataSchema = z.object({
+  Name: z.string().optional(),
   Content: z.string().optional(),
   URL: z.string().url().optional(),
   debloat: z.boolean().optional(),
   JSProgram: z.string().optional(),
-}).refine(data => !(data.Content && data.URL), {
-  message: "Cannot provide both Content and URL"
-}).refine(data => data.Content || data.URL, {
-  message: "Must provide either Content or URL"
-});
+}).refine(
+  data => {
+    const keys = [data.Name, data.Content, data.URL].filter(Boolean); // Check for set values
+    return keys.length === 1; // Exactly one must be set
+  },
+  {
+    message: "Exactly one of Name, Content, or URL must be set",
+  }
+);
 
 const PackageSchema = z.object({
   metadata: PackageMetadataSchema,
