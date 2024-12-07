@@ -20,7 +20,7 @@ const PackageID = z.string().min(1);
 
 const PackageMetadataSchema = z.object({
   Name: PackageName,
-  Version: z.string().regex(/^\d+\.\d+\.\d+$/),
+  Version: z.string().min(1),
   ID: PackageID,
 });
 
@@ -319,7 +319,7 @@ export async function handler(
 
     const newPackageData = PackageSchema.safeParse(body);
     console.log("newPackageData!~~~~~~~!!!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-    console.log(newPackageData);
+    console.log(newPackageData.data);
     console.log("newPackageData!~~~~~~~!!!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
 
@@ -371,14 +371,16 @@ export async function handler(
 
     //make sure new package is same name, different version, and same upload type
 
-    if (prevName != newPackageData.data.metadata.Name) {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({
-          message: 'Package does not exist.'
-        })
-      };
-    }
+
+    //INVESIFY
+    // if (prevName != newPackageData.data.metadata.Name) {
+    //   return {
+    //     statusCode: 404,
+    //     body: JSON.stringify({
+    //       message: 'Package does not exist.'
+    //     })
+    //   };
+    // }
 
     if (prevVersion == newVersion) {
       return {
@@ -401,7 +403,7 @@ export async function handler(
     const packageInfo = newPackageData.data;
 
     const metadata = {
-      Name: packageInfo.metadata.Name,
+      Name: prevName,
       Version: packageInfo.metadata.Version,
       ID: 'Leo' + packageInfo.metadata.ID +'98'
     };
