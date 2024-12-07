@@ -32,13 +32,18 @@ const PackageDataSchema = z.object({
   JSProgram: z.string().optional(),
 }).refine(
   data => {
-    const keys = [data.Name, data.Content, data.URL].filter(Boolean); // Check for set values
-    return keys.length === 1; // Exactly one must be set
+    // Check how many fields are truthy
+    const keys = [data.Name, data.Content, data.URL, data.debloat, data.JSProgram].filter(
+      value => value !== undefined // Account for undefined optional fields
+    );
+    return keys.length === 1; // Exactly one field must be set
   },
   {
-    message: "Exactly one of Name, Content, or URL must be set",
+    message: "Exactly one of Name, Content, URL, debloat, or JSProgram must be set",
+    path: ["Name", "Content", "URL", "debloat", "JSProgram"], // Highlight all fields in errors
   }
 );
+
 
 const PackageSchema = z.object({
   metadata: PackageMetadataSchema,
@@ -314,16 +319,22 @@ export async function handler(
     const packageId = event.pathParameters?.id;
 
     const body = JSON.parse(event.body);
+    console.log("Parsed Body:", body);
 
 
     const newPackageData = PackageSchema.safeParse(body);
     console.log("newPackageData!~~~~~~~!!!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     console.log(newPackageData);
     console.log("newPackageData!~~~~~~~!!!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+
+
     if (!newPackageData.success) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ description: 'There is missing field(s) in the PackageID or it is formed improperly, or is invalid.' })
+        body: JSON.stringify({ 
+          description: 'There is missing field(s) in the PackageID or it is formed improperly, or is invalid.',
+          details: newPackageData.error.issues,
+        }),
       };
     }
     const newVersion = newPackageData.data.metadata.Version;
