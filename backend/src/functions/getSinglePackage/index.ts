@@ -90,6 +90,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         console.log('Package ID:', packageId);
 
         if (!packageId) {
+            console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ERROR1~~~~~~~~~~~~~~~~~~~')
             return {
                 statusCode: 400,
                 body: JSON.stringify({
@@ -99,6 +100,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         }
 
         if (!isValidPackageId(packageId)) {
+            console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ERROR2~~~~~~~~~~~~~~~~~~~')
             return {
                 statusCode: 400,
                 body: JSON.stringify({
@@ -110,6 +112,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const item = await getPackageById(packageId);
 
         if (!item) {
+            console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ERROR3~~~~~~~~~~~~~~~~~~~')
             return {
                 statusCode: 404,
                 body: JSON.stringify({
@@ -119,7 +122,13 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         }
 
         if (!item.s3Key) {
-            throw new Error('S3 key not found in package metadata');
+            console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ERROR4~~~~~~~~~~~~~~~~~~~')
+            return {
+                statusCode: 404,
+                body: JSON.stringify({
+                    message: 'Package not found'
+                })
+            };
         }
 
         const base64Content = await getS3ContentAsBase64(item.s3Key);
@@ -136,6 +145,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
                 JSProgram: item.JSProgram
             }
         };
+        console.log('~!~~~~~~~~~~~~~~~~~~~RETURNED ', item.Name)
 
         return {
             statusCode: 200,
@@ -149,6 +159,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     } catch (error) {
         console.error('Error retrieving package:', error);
+        console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ERROR5~~~~~~~~~~~~~~~~~~~')
         return {
             statusCode: 500,
             body: JSON.stringify({
