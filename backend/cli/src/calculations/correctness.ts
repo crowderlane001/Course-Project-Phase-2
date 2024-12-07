@@ -10,13 +10,24 @@ export const calcCorrectnessScore = (totalOpenIssuesCount: number, totalClosedIs
 }
 
 export function calcCorrectness(repoData: ApiResponse<GraphQLResponse | null>): number {
-    const totalOpenIssues = repoData.data?.data.repository.openIssues;
-    const totalClosedIssues = repoData.data?.data.repository.closedIssues;
-
-    if (!totalOpenIssues || !totalClosedIssues) {
-        return -1.0;
+    if (!repoData.data?.data.repository) {
+        return 0.0;
     }
-    const correctness = calcCorrectnessScore(totalOpenIssues.totalCount, totalClosedIssues.totalCount);
+
+    const OpenIssues = repoData.data?.data.repository.openIssues;
+    const ClosedIssues = repoData.data?.data.repository.closedIssues;
+
+    if(!OpenIssues){
+        console.log("No open issues found");
+        return 1.0;
+    }
+
+    if (!ClosedIssues) {
+        console.log("No closed issues found");
+        return 0.0;
+    }
+
+    const correctness = calcCorrectnessScore(OpenIssues.totalCount, ClosedIssues.totalCount);
 
     return correctness;
 }

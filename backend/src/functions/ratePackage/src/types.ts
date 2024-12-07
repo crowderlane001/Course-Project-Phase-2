@@ -49,10 +49,15 @@ export interface ClosedIssues {
     nodes: ClosedIssueNode[];
 }
 
+export interface Review {
+    totalCount: number;
+}
+
 export interface PullRequestNode {
     createdAt: string;
     updatedAt: string;
     closedAt: string | null;
+    reviews: Review | [];
 }
 
 export interface PullRequests {
