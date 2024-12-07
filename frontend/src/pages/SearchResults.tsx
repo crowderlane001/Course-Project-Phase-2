@@ -105,7 +105,6 @@ function SearchResults() {
     const { query } = useParams<{ query: string }>();
     const { user } = useUserManager();
     const regex = new RegExp(query || '', 'i');
-    console.log(regex);
     const [loading, setLoading] = useState(true);
     
     const loadResults = async () => {
@@ -113,7 +112,7 @@ function SearchResults() {
         const api = new API("https://med4k766h1.execute-api.us-east-1.amazonaws.com/dev");
 
         const data = {
-            "RegEx": regex
+            "RegEx": regex.toString()
         }
 
         const headers =  {
