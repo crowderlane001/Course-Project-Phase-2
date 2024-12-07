@@ -271,13 +271,13 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     
     console.log("Metrics updated successfully");
 
-    // Return a successful response with the package rating
+    // Return a successful response with the package ratings
     return {
       statusCode: 200,
       headers: {
         "Access-Control-Allow-Origin": "http://localhost:5173", // Allow requests from your frontend
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS", // Allow HTTP methods
-        "Access-Control-Allow-Headers": "Content-Type, Authorization", // Allow headers
+        "Access-Control-Allow-Headers": "Content-Type, X-Authorization", // Allow headers
       },
       body: JSON.stringify(metrics),
     };
