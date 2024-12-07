@@ -100,15 +100,30 @@ import { DynamoDBDocumentClient, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayEvent, Context } from "aws-lambda";
 import * as jwt from 'jsonwebtoken';
 const JWT_SECRET = '1b7e4f8a9c2d1e6m3k5p9q8r7t2y4x6zew';
-
-// Create a DynamoDB client instance
 const dynamoClient = new DynamoDBClient({ region: "us-east-1" });
 
 // Create a DynamoDBDocumentClient instance from the low-level DynamoDBClient
 const documentClient = DynamoDBDocumentClient.from(dynamoClient);
 
-// Define the DynamoDB table name
 const TABLE_NAME = "PackageRegistry";
+
+function hasBacktrackingRisk(pattern: string): boolean {
+    // Patterns known to cause backtracking issues
+    const problematicPatterns = [
+        /\(.*?\)\{\d+,\d+\}/, // Nested quantifiers, e.g., (a{1,99999}){1,99999}
+        /\(.*?\)\(.*?\)/, // Multiple nested capturing groups, e.g., (a*)(a*)
+        /(\([^|()]*\|[^|()]*\))\*/, // Overlapping quantifiers, e.g., (a|aa)*$
+    ];
+
+    for (const problematicPattern of problematicPatterns) {
+        if (problematicPattern.test(pattern)) {
+            console.warn("Potential backtracking risk detected:", pattern);
+            return true;
+        }
+    }
+
+    return false;
+}
 
 export const handler = async (event: APIGatewayEvent, context: Context) => {
     const token = event.headers['X-Authorization']?.split(' ')[1];
@@ -143,25 +158,27 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
             return {
                 statusCode: 400,
                 body: JSON.stringify({
-                    message: "There is missing field(s) in the PackageRegEx or it is formed improperly, or is invalid",
+                    message: "There1 is missing field(s) in the PackageRegEx or it is formed improperly, or is invalid",
                 }),
             };
         }
 
-        let regex: RegExp;
-        try {
-            regex = new RegExp(pattern, "i"); // Create a case-insensitive regex
-        } catch (err) {
-            console.error("Invalid regex pattern:", err);
+        console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~REGEX~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
+        console.log(pattern);
+        console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~REGEX~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
+
+
+        if (hasBacktrackingRisk(pattern)) {
             return {
                 statusCode: 400,
-                body: JSON.stringify({ message: "There is missing field(s) in the PackageRegEx or it is formed improperly, or is invalid" }),
+                body: JSON.stringify({
+                    message: "Ther2 is missing field(s) in the PackageRegEx or it is formed improperly, or is invalid",
+                }),
             };
         }
 
-        // Scan the table for all items using the DocumentClient
+        const regex = new RegExp(pattern, "i");
 
-        //backtracking in regex 400 where its bad
 
         const scanCommand = new ScanCommand({
             TableName: TABLE_NAME,
@@ -177,40 +194,30 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
             };
         }
 
-        const filteredItems = [];
-        const timeout = 1000; // 1 second timeout for regex operations
-    
-        for (const item of scanResult.Items) {
+        const filteredItems = scanResult.Items.filter((item) => {
             const name = item.Name || "";
-            let match = false;
-    
-            try {
-                const start = Date.now();
-                match = regex.test(name);
-                const duration = Date.now() - start;
-    
-                if (duration > timeout) {
-                    throw new Error("Regex operation timed out");
-                }
-            } catch (err) {
-                console.error("Regex operation failed:", err);
-                return {
-                    statusCode: 400,
-                    body: JSON.stringify({ message: "Regex operation failed due to backtracking or excessive length" }),
-                };
+            return regex.test(name);
+        }).map((item) => {
+            if (!item.Name || !item.Version || !item.ID) {
+                console.warn(
+                    `Skipping invalid item: ${JSON.stringify(item)}`
+                );
+                return null; // Exclude invalid items
             }
-    
-            if (match) {
-                if (!item.Name || !item.Version || !item.ID) {
-                    console.warn(`Skipping invalid item: ${JSON.stringify(item)}`);
-                    continue; // Exclude invalid items
-                }
-                filteredItems.push({
-                    Name: item.Name, // Expected to exist
-                    Version: item.Version, // Expected to exist
-                    ID: item.ID, // Expected to exist
-                });
-            }
+            return {
+                Name: item.Name, // Expected to exist
+                Version: item.Version, // Expected to exist
+                ID: item.ID, // Expected to exist
+            };
+        }).filter((item) => item !== null); // Remove nulls
+
+        if (filteredItems.length === 0) {
+            return {
+                statusCode: 404,
+                body: JSON.stringify({
+                    message: "No packages matched the provided regex pattern.",
+                }), // Provide an explanatory message
+            };
         }
 
         // Respond with the filtered items
@@ -220,7 +227,6 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
                 "Access-Control-Allow-Origin": "http://localhost:5173", // Allow requests from your frontend
                 "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS", // Allow HTTP methods
                 "Access-Control-Allow-Headers": "Content-Type, Authorization", // Allow headers
-                'Content-Type': 'application/json'
               },
             body: JSON.stringify(filteredItems) // Return filteredItems directly
         };

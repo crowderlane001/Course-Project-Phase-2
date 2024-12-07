@@ -309,10 +309,12 @@ export async function handler(
     const packageId = event.pathParameters?.id;
 
     const body = JSON.parse(event.body);
-    console.log("Body!~~~~~~~!!!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-    console.log(body);
+
+
     const newPackageData = PackageSchema.safeParse(body);
-    
+    console.log("newPackageData!~~~~~~~!!!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    console.log(newPackageData);
+    console.log("newPackageData!~~~~~~~!!!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     if (!newPackageData.success) {
       return {
         statusCode: 400,
@@ -329,6 +331,10 @@ export async function handler(
       };
     }
 
+    console.log("~~~~~~~~~~~~~~~~~~~~~~Prev ID~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    console.log(packageId)
+    console.log("~~~~~~~~~~~~~~~~~~~~~~Prev ID~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+
     const getPackage = await getPackageById(packageId);
 
     if (!getPackage) {
@@ -343,6 +349,7 @@ export async function handler(
 
     const prevName = unitem.Name;
     const prevVersion = unitem.Version;
+    const prevId = unitem.ID;
     // const prevURLCheck = unitem.URL;
 
     // let checkURL = false;
@@ -353,11 +360,20 @@ export async function handler(
 
     //make sure new package is same name, different version, and same upload type
 
-    if (prevName != newPackageData.data.metadata.Name || prevVersion == newVersion) {
+    if (prevName != newPackageData.data.metadata.Name) {
       return {
         statusCode: 404,
         body: JSON.stringify({
           message: 'Package does not exist.'
+        })
+      };
+    }
+
+    if (prevVersion == newVersion) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          message: "There is missing field(s) in the PackageID or it is formed improperly, or is invalid."
         })
       };
     }
@@ -376,8 +392,15 @@ export async function handler(
     const metadata = {
       Name: packageInfo.metadata.Name,
       Version: packageInfo.metadata.Version,
-      ID: packageInfo.metadata.ID
+      ID: 'Leo' + packageInfo.metadata.ID +'98'
     };
+
+    console.log("~~~~~~~~~~~~~~~~~~~~~~Stored Meta~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    console.log(packageInfo.metadata.Name)
+    console.log(packageInfo.metadata.Version)
+    console.log(packageInfo.metadata.ID)
+    console.log("~~~~~~~~~~~~~~~~~~~~~~Stored Meta~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+
 
     // Store package content and metadata
     // ... (rest of your existing code)
