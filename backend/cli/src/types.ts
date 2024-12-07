@@ -85,23 +85,22 @@ export interface GraphQLResponse {
 
 // metrics.ts
 export interface Metrics {
-    URL: string | null; // Added URL field to the Metrics class
-    NetScore:  number | null;
-    NetScore_Latency: number | null;
     RampUp: number | null;
-    RampUp_Latency: number | null;
+    RampUpLatency: number | null;
     Correctness: number | null;
-    Correctness_Latency: number | null;
+    CorrectnessLatency: number | null;
     BusFactor: number | null;
-    BusFactor_Latency: number | null;
+    BusFactorLatency: number | null;
     ResponsiveMaintainer: number | null;
-    ResponsiveMaintainer_Latency: number | null;
-    License: number | null;
-    License_Latency: number | null;
-    PinnedDependencies: number | null;
-    PinnedDependencies_Latency: number | null;
-    ReviewedCode: number | null;
-    ReviewedCode_Latency: number | null;
+    ResponsiveMaintainerLatency: number | null;
+    LicenseScore: number | null;
+    LicenseScoreLatency: number | null;
+    GoodPinningPractice: number | null;
+    GoodPinningPracticeLatency: number | null;
+    PullRequest: number | null;
+    PullRequestLatency: number | null;
+    NetScore:  number | null;
+    NetScoreLatency: number | null;
 }
 
 export interface WorkerResult {

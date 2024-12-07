@@ -53,7 +53,8 @@ export const apiPostRequest = async <T>(
                 ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
             },
         };
-
+        
+        console.log("post request sent to:", url);
         const response = await axios.post<T>(url, data, config);
         
         return { data: response.data, error: null };

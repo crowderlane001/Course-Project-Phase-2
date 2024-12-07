@@ -147,6 +147,12 @@ const TABLE_NAME = "PackageRegistry";
 const GSI_NAME = "id-index";
 const JWT_SECRET = '1b7e4f8a9c2d1e6m3k5p9q8r7t2y4x6zew';
 
+const defaultHeaders = {
+  "Access-Control-Allow-Origin": "*", // Update to specific domain for production
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
 // Custom error class for better error handling
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
@@ -156,7 +162,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   // if (!token) {
   //   return {
   //     statusCode: 403,
-  //     body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+  //     body: JSON.stringify({ message: 'Authentication failed due to missing AuthenticationToken.' }),
   //   };
   // }
 
@@ -170,6 +176,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
   //   return {
   //     statusCode: 403,
+  //     headers: defaultHeaders,
   //     body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
   //   };
   // }
@@ -183,6 +190,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     if (!packageId) {
       return {
         statusCode: 400,
+        headers: defaultHeaders,
         body: JSON.stringify({ message: 'There is missing field(s) in the PackageID' }),
       };
     }
@@ -207,33 +215,16 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     if (!Items || Items.length === 0) {
       return {
         statusCode: 404,
+        headers: defaultHeaders,
         body: JSON.stringify({ message: 'Package does not exist.' }),
       };
     }
-
-    // var metrics = {
-    //   RampUp: -1,
-    //   Correctness: -1,
-    //   BusFactor: -1,
-    //   ResponsiveMaintainer: -1,
-    //   LicenseScore: -1,
-    //   GoodPinningPractice: -1,
-    //   PullRequest: -1,
-    //   NetScore: -1,
-    //   RampUpLatency: -1,
-    //   CorrectnessLatency: -1,
-    //   BusFactorLatency: -1,
-    //   ResponsiveMaintainerLatency: -1,
-    //   LicenseScoreLatency: -1,
-    //   GoodPinningPracticeLatency: -1,
-    //   PullRequestLatency: -1,
-    //   NetScoreLatency: -1,
-    // };
 
     const item = Items[0]; // Assuming one record per ID
     if (!item.URL) {
       return {
         statusCode: 404,
+        headers: defaultHeaders,
         body: JSON.stringify({ message: 'Package does not exist.' }),
       };
     }
@@ -245,14 +236,10 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     if (!metrics) {
       return {
         statusCode: 500,
+        headers: defaultHeaders,
         body: JSON.stringify({ message: 'The package rating system choked on at least one of the metrics.' }),
       };
     }
-
-    console.log(metrics);
-
-    console.log("Metrics calculated successfully");
-
 
     // Update the metrics in the DynamoDB table
     await dynamo.send(
@@ -274,11 +261,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     // Return a successful response with the package ratings
     return {
       statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin": "http://localhost:5173", // Allow requests from your frontend
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS", // Allow HTTP methods
-        "Access-Control-Allow-Headers": "Content-Type, X-Authorization", // Allow headers
-      },
+      headers: defaultHeaders,
       body: JSON.stringify(metrics),
     };
   } catch (error) {
@@ -286,7 +269,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     return {
       statusCode: 500,
       body: JSON.stringify({
-        message: 'Internal server error during bulk deletion',
+        message: 'Internal server error',
         error: error instanceof Error ? error.message : 'Unknown error'
       })
     };

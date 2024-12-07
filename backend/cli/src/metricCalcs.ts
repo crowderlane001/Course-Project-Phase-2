@@ -1,16 +1,53 @@
 import { ApiResponse, GraphQLResponse } from './types';
-import { runWorker } from './index';
+import { runWorker } from './indexSRC';
 import { Metrics, WorkerResult } from './types'
+import { clone } from 'isomorphic-git';
+import * as fs from 'fs';
+import http from 'isomorphic-git/http/node';
+import * as path from 'path';
 
+export const cloner = async (repoUrl: string, localDir: string): Promise<null> => {
+    const tmpDir = '/tmp';
+    const fullPath = path.join(tmpDir, localDir);  // Combine /tmp with the provided localDir
+
+    try {
+        // Check if the directory exists (do not delete or alter contents)
+        const dirExists = fs.existsSync(fullPath);
+        
+        // If the directory exists, skip cloning
+        if (dirExists) {
+            console.log(`Directory ${fullPath} already exists. Skipping clone.`);
+            return null; // Skip cloning if directory already exists
+        }
+
+        // Clone the repository into the local directory
+        await clone({
+            fs,
+            http,
+            dir: tmpDir,
+            url: repoUrl,
+            singleBranch: true,
+            depth: 1
+        });
+        
+        console.log(`Repository cloned into ${fullPath}`);
+    } catch (err) {
+        console.error(`Error handling the repository at ${fullPath}:`, err);
+    }
+
+    return null;
+}
 
 // Modifying the calculateMetrics function to include the new metrics
 export async function calculateMetrics(owner: string, repo: string, token: string, repoURL: string, repoData: ApiResponse<GraphQLResponse | null>, inputURL: string): Promise<Metrics | null> {
+    await cloner(repoURL, repo);
+
     const busFactorWorker = runWorker(owner, repo, token, repoURL, repoData, "busFactor");
     const correctnessWorker = runWorker(owner, repo, token, repoURL, repoData, "correctness");
     const rampUpWorker = runWorker(owner, repo, token, repoURL, repoData, "rampUp");
     const responsivenessWorker = runWorker(owner, repo, token, repoURL, repoData, "responsiveness");
-    const licenseWorker = runWorker(owner, repo, token, repoURL, repoData, "license");
-    const pinnedDepsWorker = runWorker(owner, repo, token, repoURL, repoData, "pinnedDeps");
+    const licenseWorker = runWorker(owner, repo, token, repoURL, repoData, "license"); // needs repoURL
+    const pinnedDepsWorker = runWorker(owner, repo, token, repoURL, repoData, "pinnedDeps"); // needs repoURL
     const reviewedCodeWorker = runWorker(owner, repo, token, repoURL, repoData, "reviewedCode");
 
     const results = await Promise.all([busFactorWorker, correctnessWorker, rampUpWorker, responsivenessWorker, licenseWorker, pinnedDepsWorker, reviewedCodeWorker]);
@@ -39,23 +76,22 @@ export async function calculateMetrics(owner: string, repo: string, token: strin
     const netScore_Latency = parseFloat(((end - begin) / 1000).toFixed(3))
     
     const metrics: Metrics = {
-        URL: inputURL,
-        NetScore: netScore,
-        NetScore_Latency: netScore_Latency,
-        RampUp: rampUp,
-        RampUp_Latency: rampUpLatency,
-        Correctness: correctness,
-        Correctness_Latency: correctnessLatency,
         BusFactor: busFactor,
-        BusFactor_Latency: busFactorLatency,
+        BusFactorLatency: busFactorLatency,
+        Correctness: correctness,
+        CorrectnessLatency: correctnessLatency,
+        RampUp: rampUp,
+        RampUpLatency: rampUpLatency,
         ResponsiveMaintainer: responsiveness,
-        ResponsiveMaintainer_Latency: responsivenessLatency,
-        License: license,
-        License_Latency: licenseLatency,
-        PinnedDependencies: pinnedDeps,  // New metric
-        PinnedDependencies_Latency: pinnedDepsLatency,
-        ReviewedCode: reviewedCode,       // New metric
-        ReviewedCode_Latency: reviewedCodeLatency
+        ResponsiveMaintainerLatency: responsivenessLatency,
+        LicenseScore: license,
+        LicenseScoreLatency: licenseLatency,
+        GoodPinningPractice: pinnedDepsLatency,
+        GoodPinningPracticeLatency: pinnedDeps,  // New metric
+        PullRequest: reviewedCode,       // New metric
+        PullRequestLatency: reviewedCodeLatency,
+        NetScore: netScore,
+        NetScoreLatency: netScore_Latency
     };
 
     return metrics;

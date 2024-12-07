@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 export async function calcPinnedDependencies(owner: string, repo: string, token: string): Promise<number> {
-    const packageJsonPath = path.join("./repos", `${owner}_${repo}`, 'package.json');
+    const packageJsonPath = path.join("./tmp", `${owner}_${repo}`, 'package.json');
 
     if (!fs.existsSync(packageJsonPath)) {
         return 1.0; // No dependencies, so return 1.0

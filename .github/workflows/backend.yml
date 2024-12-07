@@ -73,7 +73,7 @@ jobs:
               npx tsc
               
               # Create deployment package including .env if it exists
-              zip -r ${folder}_deploy.zip index.js node_modules/ .env */ -x "*.ts"
+              zip -r -q ${folder}_deploy.zip index.js node_modules/ .env */ -x "*.ts"
 
               # Deploy to AWS Lambda
               aws lambda update-function-code \
