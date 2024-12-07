@@ -59,8 +59,6 @@ export function UploadFormZip() {
             "JSProgram": "",
         };
 
-        console.log(formData);
-
         const api = new API("https://med4k766h1.execute-api.us-east-1.amazonaws.com/dev");
 
         const headers = {

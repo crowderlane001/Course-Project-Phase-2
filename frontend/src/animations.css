@@ -1,22 +1,26 @@
-.page-enter {
+/* .page-enter {
     opacity: 0;
+    transform: translateZ(0); 
+    will-change: opacity; 
+    transition: opacity 300ms 100ms ease-in-out;
 }
 
 .page-enter-active {
     opacity: 1;
-    transition: 300ms ease-in-out;
-
+    transition: opacity 300ms ease-in-out;
 }
 
 .page-exit {
     opacity: 1;
+    transform: translateZ(0); 
+    will-change: opacity;
+    transition: opacity 300ms ease-in-out;
 }
 
 .page-exit-active {
     opacity: 0;
-    transition: 300ms ease-in-out;
-}
-
+    transition: opacity 300ms ease-in-out;
+} */
 @keyframes spin {
     0% {
         transform: rotate(0deg);
