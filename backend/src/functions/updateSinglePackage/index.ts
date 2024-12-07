@@ -122,7 +122,7 @@ async function checkPackageExists(name: string, version: string): Promise<boolea
           // Handle GitHub URLs as before
           downloadUrl = url.replace('github.com', 'api.github.com/repos')
                           .replace(/\.git$/, '')
-                          + '/zipball/master';
+                          + '/zipball';
     
           const response = await axios({
             method: 'get',
