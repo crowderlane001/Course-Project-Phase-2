@@ -60,10 +60,11 @@ const Base64Unzipper: React.FC<Base64UnzipperProps> = ({ base64Zip }) => {
     return (
         <div>
             <TooltipProvider>
-                <div className="grid grid-cols-5 gap-4 items-center">
-                    <h2 className="col-span-4">Files <span className="text-xs italic text-gray-400">Hover over each file to view full name</span></h2>
-                    <h2>Download</h2>
+                <div className="flex justify-between items-center box-border w-full">
+                    <h2 className="flex-1">Files</h2>
+                    <h2 className="flex-none">Download</h2>
                 </div>
+                <span className="text-xs italic text-gray-400">Hover over each file to view full name</span>
                 <ScrollArea className="h-[300px] w-full rounded p-2">
                     <ul>
                         {!isDone || files.length === 0 ? (

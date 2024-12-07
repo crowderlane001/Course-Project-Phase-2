@@ -81,7 +81,6 @@ export function LoginForm() {
             setIsPassword(true);
         }
         const result: zxcvbn.ZXCVBNResult = zxcvbn(password);
-        console.log(result);
         setPasswordStrength(result.score);
         form.setValue("password", password);
     }

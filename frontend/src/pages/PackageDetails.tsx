@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Package from "@/models/package";
 import { toast } from "@/hooks/use-toast";
 import Spinner from "@/components/user-defined/spinner";
+import React from "react";
 
 interface PackageDetailsProps {
     isResult?: boolean;
@@ -22,8 +23,7 @@ function PackageDetails({ isResult = false }: PackageDetailsProps) {
     const [isError, setIsError] = useState(false);
     const { id } = useParams<{ id: string }>();
     const [packageContent, setPackageContent] = useState<string | null>(null);
-    const [isContent, setIsContent] = useState<boolean>(true);
-    const [rating, setRating] = useState<number | string | null>(null);
+    const [rating, setRating] = useState<Map<string, number> | string | null>(null);
     const [cost, setCost] = useState<number | string | null>(null);
     const { user } = useUserManager();
 
@@ -40,11 +40,9 @@ function PackageDetails({ isResult = false }: PackageDetailsProps) {
             const response = await api.get(`/package/${id}`, headers);
             if (response.data.Content !== '') {
                 setPackageContent(response.data.Content);
-                setIsContent(true);
             } else {
                 setPackageContent(response.data.URL);
             }
-            console.log(response.data);
             const pkg = new Package(response.metadata.ID, response.metadata.Name, response.metadata.Version);
 
             setPackage(pkg);
@@ -61,11 +59,12 @@ function PackageDetails({ isResult = false }: PackageDetailsProps) {
     const getRate = async () => {
         try {
             const response = await api.get(`/package/${id}/rate`, headers);
-            if (isContent) {
-                setRating(response[id!].Rating);
-            } else {
-                setRating("Not available");
-            }
+            const ratingMap = new Map<string, number>();
+            Object.entries(response).forEach(([key, value]) => {
+
+                ratingMap.set(key, value as number);
+            });
+            setRating(ratingMap);
         } catch (error) {
             setRating("Not available");
         }
@@ -90,7 +89,7 @@ function PackageDetails({ isResult = false }: PackageDetailsProps) {
         }
     }, []);
 
-    useEffect(() => { }, [loading]);
+    // useEffect(() => { }, [loading]);
 
 
 
@@ -111,33 +110,44 @@ function PackageDetails({ isResult = false }: PackageDetailsProps) {
                         <h2>Package ID: {id}</h2>
                     </CardHeader>
                     <CardContent>
-                        <div className="grid grid-cols-12 gap-4">
+                        <div className="flex flex-col gap-5">
                             {loading ? <Skeleton className="w-full h-10 col-span-12" /> :
-                                <div className="col-span-8">
+                                <div className="col-span-6">
                                     <Card>
                                         <CardContent className="p-4">
                                             <div className="min-h-[200px]">
-                                                {isContent ?
-                                                    <Base64Unzipper base64Zip={packageContent ?? ""} /> :
-                                                    <Button variant={"link"} onClick={() => window.open(packageContent ?? "", "_blank")}>
-                                                        View repository
-                                                    </Button>}
+                                                <Base64Unzipper base64Zip={packageContent ?? ""} />
                                             </div>
                                         </CardContent>
                                     </Card>
                                 </div>
                             }
                             {loading ? <Skeleton className="w-full h-10 col-span-4" /> :
-                                <div className="col-span-4">
+                                <div className="col-span-6">
                                     <Card>
                                         <CardContent className="p-4">
-                                            <div className="relative min-h-[200px] flex flex-col">
+                                            <div className="relative min-h-[200px] flex flex-col gap-5">
                                                 <div className="flex-1 w-full">
-                                                    <p className="text-sm text-gray-400">Package rating</p>
-                                                    {rating !== null ? rating : <Skeleton className="w-[100px] h-7 " />}
+                                                    <p className="text-m text-gray-400">Package rating</p>
+                                                    {rating !== null ? (
+                                                        typeof rating === "string" ? (
+                                                            rating
+                                                        ) : (
+                                                            <div className="grid grid-cols-2 gap-4">
+                                                            {Array.from(rating.entries()).map(([key, value]: [string, any], index: number) => (
+                                                                <React.Fragment key={index}>
+                                                                    <span className="font-semibold">{key}:</span>
+                                                                    <span className="text-right">{value}</span>
+                                                                </React.Fragment>
+                                                            ))}
+                                                        </div>
+                                                        )
+                                                    ) : (
+                                                        <Skeleton className="w-[100px] h-7" />
+                                                    )}
                                                 </div>
                                                 <div className="flex-1 w-full">
-                                                    <p className="text-sm text-gray-400">Package cost</p>
+                                                    <p className="text-m text-gray-400">Package cost</p>
                                                     {cost !== null ? cost : <Skeleton className="w-[100px] h-7 " />}
                                                 </div>
                                             </div>

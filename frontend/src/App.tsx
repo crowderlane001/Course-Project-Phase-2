@@ -17,40 +17,25 @@ import Cookies from "js-cookie";
 import User from "./models/user-model";
 import SearchResults from "./pages/SearchResults";
 import { Toaster } from "./components/ui/toaster";
-import { toast } from "./hooks/use-toast";
 
 
-function initialize(setUser: (user: User | null) => void, _setLoggedOut: (loggedOut: boolean) => void) {
-  console.log("Initializing...");
+function initialize(setUser: (user: User | null) => void) {
   const cookie = Cookies.get("user");
-  console.log("Cookie: ", cookie);
   if (!(cookie == null || cookie === "null" || cookie === "undefined")) {
     const user: User = JSON.parse(cookie);
     setUser(user);
-
-    // const packagesApi = new API("https://med4k766h1.execute-api.us-east-1.amazonaws.com/dev");
-    // packagesApi.post("/package/byRegEx", {"RegEx": ".*"})
-    //   .catch((error) => {
-    //     console.error("Error fetching data: ", error);
-    //     Cookies.remove("user", { path: '/' });
-    //     setUser(null);
-    //     setLoggedOut(true);
-    //   });
   }
 }
 
 function App() {
   const { user, setUser } = useUserManager();
-  const [loggedOut, setLoggedOut] = useState<boolean>(false);
+  const [loggedOut] = useState<boolean>(false);
 
   useEffect(() => { }, [user, loggedOut]);
   useEffect(() => {
-    initialize(setUser, setLoggedOut);
+    initialize(setUser);
   }, []);
 
-  if (loggedOut) {
-    toast({ title: "Logged out", description: "You have been logged out. Please log in again." });
-  }
 
   return (
     <Router>
