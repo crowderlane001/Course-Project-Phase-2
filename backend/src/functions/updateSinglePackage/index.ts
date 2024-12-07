@@ -3,54 +3,51 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { DynamoDBClient, QueryCommand, PutItemCommand, GetItemCommand, AttributeValue } from '@aws-sdk/client-dynamodb';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
+import * as jwt from 'jsonwebtoken';
 
 import { Buffer } from 'buffer';
 import axios from 'axios';
 /*
 Take in id via url, take in package schema, meta and dat
 check if its already there
+npm i --save-dev @types/jsonwebtoken
 check the package originally, make sure it was uploaded by content / url like before
 get all versions of the package
 check version numbers, if we can upload
 upload like normal afte
 
 */
-const PackageName = z.string().min(1);
-const PackageID = z.string().min(1);
 
 const PackageMetadataSchema = z.object({
-  Name: PackageName,
-  Version: z.string().regex(/^\d+\.\d+\.\d+$/),
-  ID: PackageID,
+  Name: z.string().min(1),
+  Version: z.string().min(1),
+  ID: z.string().min(1),
 });
 
 const PackageDataSchema = z.object({
+  Name: z.string().optional(),
+  Version: z.string().optional(),
   Content: z.string().optional(),
   URL: z.string().url().optional(),
   debloat: z.boolean().optional(),
   JSProgram: z.string().optional(),
-}).refine(data => !(data.Content && data.URL), {
-  message: "Cannot provide both Content and URL"
-}).refine(data => data.Content || data.URL, {
-  message: "Must provide either Content or URL"
-});
+}).refine(
+  data => !(data.Content && data.URL), // Fail if both are set
+  {
+    message: "Cannot provide both Content and URL in the data section",
+    path: ["Content", "URL"], // Highlight these fields in errors
+  }
+);
 
 const PackageSchema = z.object({
   metadata: PackageMetadataSchema,
   data: PackageDataSchema,
 });
 
-const ERROR_TYPES = {
-  INVALID_REQUEST: { statusCode: 400, message: 'Invalid request parameters' },
-  AUTH_FAILED: { statusCode: 403, message: 'Authentication failed' },
-  NOT_FOUND: { statusCode: 404, message: 'Package not found' },
-  VERSION_CONFLICT: { statusCode: 400, message: 'Invalid version sequence' },
-  INGESTION_MISMATCH: { statusCode: 400, message: 'Content/URL ingestion method mismatch' }
-};
-
 const BUCKET_NAME = "storage-phase-2";
 const TABLE_NAME = "PackageRegistry";
 const GSI_NAME = "id-index";
+const JWT_SECRET = '1b7e4f8a9c2d1e6m3k5p9q8r7t2y4x6zew';
 
 // Initialize AWS clients
 const s3Client = new S3Client({});
@@ -117,7 +114,7 @@ async function checkPackageExists(name: string, version: string): Promise<boolea
           // Handle GitHub URLs as before
           downloadUrl = url.replace('github.com', 'api.github.com/repos')
                           .replace(/\.git$/, '')
-                          + '/zipball/master';
+                          + '/zipball';
     
           const response = await axios({
             method: 'get',
@@ -298,6 +295,31 @@ async function validatePatchVersion(packageName: string, version: string, isURLU
 export async function handler(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
+
+  const token = event.headers['X-Authorization']?.split(' ')[1];
+
+  if (!token) {
+    return {
+      statusCode: 403,
+      body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+    };
+  }
+
+  try {
+    // Verify the JWT
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    console.log('Token is valid:', decoded);
+  } catch (err) {
+    console.error('Token verification failed:', err);
+
+    return {
+      statusCode: 403,
+      body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+    };
+  }
+
+
   try {
     if (!event.body) {
       return {
@@ -309,16 +331,22 @@ export async function handler(
     const packageId = event.pathParameters?.id;
 
     const body = JSON.parse(event.body);
+    console.log("Parsed Body:", body);
 
 
     const newPackageData = PackageSchema.safeParse(body);
     console.log("newPackageData!~~~~~~~!!!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-    console.log(newPackageData);
+    console.log(newPackageData.data);
     console.log("newPackageData!~~~~~~~!!!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+
+
     if (!newPackageData.success) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ description: 'There is missing field(s) in the PackageID or it is formed improperly, or is invalid.' })
+        body: JSON.stringify({ 
+          description: 'There is missing field(s) in the PackageID or it is formed improperly, or is invalid.',
+          details: newPackageData.error.issues,
+        }),
       };
     }
     const newVersion = newPackageData.data.metadata.Version;
@@ -327,7 +355,7 @@ export async function handler(
     if (!packageId || !newPackageData.data.metadata || !newVersion) {
       return {
         statusCode: 400,
-        body: JSON.stringify(ERROR_TYPES.INVALID_REQUEST)
+        body: JSON.stringify({ description: 'There is missing field(s) in the PackageID or it is formed improperly, or is invalid.' })
       };
     }
 
@@ -360,14 +388,16 @@ export async function handler(
 
     //make sure new package is same name, different version, and same upload type
 
-    if (prevName != newPackageData.data.metadata.Name) {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({
-          message: 'Package does not exist.'
-        })
-      };
-    }
+
+    //INVESIFY
+    // if (prevName != newPackageData.data.metadata.Name) {
+    //   return {
+    //     statusCode: 404,
+    //     body: JSON.stringify({
+    //       message: 'Package does not exist.'
+    //     })
+    //   };
+    // }
 
     if (prevVersion == newVersion) {
       return {
@@ -390,7 +420,7 @@ export async function handler(
     const packageInfo = newPackageData.data;
 
     const metadata = {
-      Name: packageInfo.metadata.Name,
+      Name: prevName,
       Version: packageInfo.metadata.Version,
       ID: 'Leo' + packageInfo.metadata.ID +'98'
     };
@@ -429,7 +459,7 @@ export async function handler(
       headers: {
         "Access-Control-Allow-Origin": "*", // Allow requests from your frontend
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS", // Allow HTTP methods
-        "Access-Control-Allow-Headers": "Content-Type, X-Authorization", // Allow headers
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Authorization", // Allow headers
         'Content-Type': 'application/json'
       },
       body: JSON.stringify( {
