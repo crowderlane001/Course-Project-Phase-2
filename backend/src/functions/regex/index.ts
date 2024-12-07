@@ -131,11 +131,6 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
     if (!token) {
       return {
         statusCode: 403,
-        headers: {
-            "Access-Control-Allow-Origin": "*", // Allow requests from your frontend
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS", // Allow HTTP methods
-            "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Authorization", // Allow headers
-          },
         body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
       };
     }
@@ -150,11 +145,6 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
   
       return {
         statusCode: 403,
-        headers: {
-            "Access-Control-Allow-Origin": "*", // Allow requests from your frontend
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS", // Allow HTTP methods
-            "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Authorization", // Allow headers
-          },
         body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
       };
     }
@@ -167,11 +157,6 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
         if (!pattern) {
             return {
                 statusCode: 400,
-                headers: {
-                    "Access-Control-Allow-Origin": "*", // Allow requests from your frontend
-                    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS", // Allow HTTP methods
-                    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Authorization", // Allow headers
-                  },
                 body: JSON.stringify({
                     message: "There1 is missing field(s) in the PackageRegEx or it is formed improperly, or is invalid",
                 }),
@@ -186,11 +171,6 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
         if (hasBacktrackingRisk(pattern)) {
             return {
                 statusCode: 400,
-                headers: {
-                    "Access-Control-Allow-Origin": "*", // Allow requests from your frontend
-                    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS", // Allow HTTP methods
-                    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Authorization", // Allow headers
-                  },
                 body: JSON.stringify({
                     message: "Ther2 is missing field(s) in the PackageRegEx or it is formed improperly, or is invalid",
                 }),
@@ -246,7 +226,7 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
             headers: {
                 "Access-Control-Allow-Origin": "*", // Allow requests from your frontend
                 "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS", // Allow HTTP methods
-                "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Authorization", // Allow headers
+                "Access-Control-Allow-Headers": "Content-Type, X-Authorization", // Allow headers
               },
             body: JSON.stringify(filteredItems) // Return filteredItems directly
         };
