@@ -154,12 +154,10 @@ async function fetchGithubPackageInfo(url: string): Promise<{ name: string; vers
       const version = packageJson.version;
       let URL = packageJson.repository?.url || "";
 
-      if (URL == "git://github.com/dominictarr/JSONStream.git"){
-        URL = "https://github.com/dominictarr/JSONStream.git"
-      }
-
-      if (URL == "git+https://github.com/Gninoskcaj/easy-math-module.git"){
-        URL = "https://github.com/Verassitnh/easy-math-module.git"
+      if (URL.startsWith("git://")) {
+        URL = URL.replace("git://", "https://");
+      } else if (URL.startsWith("git+https://")) {
+        URL = URL.replace("git+https://", "https://");
       }
   
       return { name, version, URL};
