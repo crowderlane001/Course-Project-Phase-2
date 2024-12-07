@@ -478,7 +478,7 @@ export async function handler(
       headers: {
         "Access-Control-Allow-Origin": "*", // Allow requests from your frontend
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS", // Allow HTTP methods
-        "Access-Control-Allow-Headers": "Content-Type, X-Authorization", // Allow headers
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Authorization", // Allow headers
       },
       body: JSON.stringify(responseBody)
     };

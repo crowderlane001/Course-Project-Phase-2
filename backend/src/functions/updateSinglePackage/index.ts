@@ -17,13 +17,11 @@ check version numbers, if we can upload
 upload like normal afte
 
 */
-const PackageName = z.string().min(1);
-const PackageID = z.string().min(1);
 
 const PackageMetadataSchema = z.object({
-  Name: PackageName,
+  Name: z.string().min(1),
   Version: z.string().min(1),
-  ID: PackageID,
+  ID: z.string().min(1),
 });
 
 const PackageDataSchema = z.object({
@@ -40,7 +38,6 @@ const PackageDataSchema = z.object({
     path: ["Content", "URL"], // Highlight these fields in errors
   }
 );
-
 
 const PackageSchema = z.object({
   metadata: PackageMetadataSchema,
@@ -462,7 +459,7 @@ export async function handler(
       headers: {
         "Access-Control-Allow-Origin": "*", // Allow requests from your frontend
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS", // Allow HTTP methods
-        "Access-Control-Allow-Headers": "Content-Type, X-Authorization", // Allow headers
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Authorization", // Allow headers
         'Content-Type': 'application/json'
       },
       body: JSON.stringify( {
