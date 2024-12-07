@@ -5,7 +5,6 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import * as jwt from 'jsonwebtoken';
 
-
 import { Buffer } from 'buffer';
 import axios from 'axios';
 /*
