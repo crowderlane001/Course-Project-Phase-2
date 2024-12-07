@@ -16,9 +16,6 @@ class API {
             },
         });
         return response.json();
-
-
-
     }
 
     async post(path: string, data: any, header?: Header) {
@@ -33,17 +30,29 @@ class API {
         return response.json();
     }
 
-    async put(path: string, data: any) {
+    async put(path: string, data: any, header?: Header) {
 
         const response = await fetch(`${this.baseURL}${path}`, {
             method: "PUT",
             body: JSON.stringify(data),
-            headers: {
+            headers: header != null ? header : {
                 "Content-Type": "application/json",
             }
         });
         return response.json();
     }
+
+    async delete(path: string, header?: Header) {
+
+        const response = await fetch(`${this.baseURL}${path}`, {
+            method: "DELETE",
+            headers: header != null ? header : {
+                "Content-Type": "application/json",
+            }
+        });
+        return response.json();
+    }
+    
 }
 
 export default API;

@@ -51,7 +51,7 @@ export function LoginForm() {
         const api = new API("https://med4k766h1.execute-api.us-east-1.amazonaws.com/dev");
 
         let isAdmin: boolean = false;
-        const adminRegexOnUsername = /admin_/i;
+        const adminRegexOnUsername = /^admin_.*/i;
 
         if (adminRegexOnUsername.test(username)) {
             isAdmin = true;
@@ -96,7 +96,11 @@ export function LoginForm() {
                 toast({ title: "Failure", description: "Could not log in, try again." });
                 return;
             }
-            const user = new User({ token: token, username });
+
+            const isAdmin: boolean = /^admin_.*/i.test(username);
+    
+            const user = new User({ token: token, username, isAdmin: isAdmin });
+            console.log(user.isAdmin);
 
             setUser(user);
             Cookies.set("user", JSON.stringify(user), {
