@@ -36,6 +36,7 @@ export function LoginForm() {
     const { setUser } = useUserManager();
     const [passwordStrength, setPasswordStrength] = useState<number>(0);
     const [isPassword, setIsPassword] = useState<boolean>(false);
+    const [isError, setIsError] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const form = useForm<z.infer<typeof FormSchema>>({
@@ -67,8 +68,13 @@ export function LoginForm() {
             }
         }
 
-        const response = await api.put("/authenticate", data);
-        return response;
+        try {
+            const response = await api.put("/authenticate", data);
+            return response;
+        } catch (error) {
+            setIsError(true);
+            return "";
+        }
     }
 
     const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,6 +94,12 @@ export function LoginForm() {
         const { username, password } = data;
         try {
         const token: string = await getToken(username, password);
+        console.log(token);
+        if (token === "" || token === undefined || token === null) {
+            setIsLoading(false);
+            toast({ title: "Failure", description: "Could not log in, try again." });
+            return;
+        }
         const user = new User({ token: token, username });
 
         setUser(user);

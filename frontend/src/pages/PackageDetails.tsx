@@ -4,18 +4,22 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Page from "@/components/user-defined/page";
 import { ChevronLeft } from "lucide-react";
-import { usePackageManager } from "@/hooks/use-packagemanager";
 import { useUserManager } from "@/hooks/use-usermanager";
 import Base64Unzipper from "@/components/user-defined/base64-decoder";
 import API from "@/api/api";
 import { Skeleton } from "@/components/ui/skeleton";
+import Package from "@/models/package";
+import { toast } from "@/hooks/use-toast";
+import Spinner from "@/components/user-defined/spinner";
 
 interface PackageDetailsProps {
     isResult?: boolean;
 }
 
 function PackageDetails({ isResult = false }: PackageDetailsProps) {
-    const { packages } = usePackageManager();
+    const [packageState, setPackage] = useState<Package | null>(null);
+    const [loading, setLoading] = useState(true); // Add loading state
+    const [isError, setIsError] = useState(false);
     const { id } = useParams<{ id: string }>();
     const [packageContent, setPackageContent] = useState<string | null>(null);
     const [isContent, setIsContent] = useState<boolean>(true);
@@ -27,18 +31,32 @@ function PackageDetails({ isResult = false }: PackageDetailsProps) {
 
     const headers = {
         "Content-Type": "application/json",
-        "X-Authorization": user?.token
+        "Authorization": user?.token
     }
 
+
     const getPackageMeta = async () => {
-        const response = await api.get(`/package/${id}`, headers);
-        if (response.data.Content !== '') {
-            setPackageContent(response.data.Content);
-            setIsContent(true);
-        } else {
-            setPackageContent(response.data.URL);
+        try {
+            const response = await api.get(`/package/${id}`, headers);
+            if (response.data.Content !== '') {
+                setPackageContent(response.data.Content);
+                setIsContent(true);
+            } else {
+                setPackageContent(response.data.URL);
+            }
+            console.log(response.data);
+            const pkg = new Package(response.metadata.ID, response.metadata.Name, response.metadata.Version);
+
+            setPackage(pkg);
+        } catch (error) {
+            toast({ title: "Error", description: "Package not found" });
+            setIsError(true);
         }
     };
+
+    if (isError) {
+        return <h1>Package not found.</h1>
+    }
 
     const getRate = async () => {
         const response = await api.get(`/package/${id}/rate`, headers);
@@ -52,6 +70,7 @@ function PackageDetails({ isResult = false }: PackageDetailsProps) {
     const getCost = async () => {
         const response = await api.get(`/package/${id}/cost`, headers);
         setCost(response[id!].totalCost);
+
     };
 
     useEffect(() => {
@@ -59,14 +78,14 @@ function PackageDetails({ isResult = false }: PackageDetailsProps) {
             getPackageMeta();
             getRate();
             getCost();
+            setLoading(false);
         }
     }, []);
 
+    
+
+
     const spacer = <div className="w-3 h-1"></div>;
-    const packageFromId = packages.get(id ?? "");
-    if (!packageFromId) {
-        return <div>Package not found</div>;
-    }
 
     const handleBack = () => {
         window.history.back();
@@ -78,40 +97,44 @@ function PackageDetails({ isResult = false }: PackageDetailsProps) {
                 {isResult && <Button variant="link" onClick={handleBack}>{<ChevronLeft />}{spacer}Back to results</Button>}
                 <Card>
                     <CardHeader>
-                        <CardTitle><h1>{packageFromId.name}</h1> </CardTitle>
+                        <CardTitle>{loading ? <Spinner /> : <h1>{packageState?.name}</h1>}</CardTitle>
                         <h2>Package ID: {id}</h2>
                     </CardHeader>
                     <CardContent>
                         <div className="grid grid-cols-12 gap-4">
-                            <div className="col-span-8">
-                                <Card>
-                                    <CardContent className="p-4">
-                                        <div className="min-h-[200px]">
-                                            {isContent ?
-                                                <Base64Unzipper base64Zip={packageContent ?? ""} /> :
-                                                <Button variant={"link"} onClick={() => window.open(packageContent ?? "", "_blank")}>
-                                                    View repository
-                                                </Button>}
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </div>
-                            <div className="col-span-4">
-                                <Card>
-                                    <CardContent className="p-4">
-                                        <div className="relative min-h-[200px] flex flex-col">
-                                            <div className="flex-1 w-full">
-                                                <p className="text-sm text-gray-400">Package rating</p>
-                                                {rating !== null ? rating : <Skeleton className="w-[100px] h-7 " />}
+                            {loading ? <Skeleton className="w-full h-10 col-span-12" /> :
+                                <div className="col-span-8">
+                                    <Card>
+                                        <CardContent className="p-4">
+                                            <div className="min-h-[200px]">
+                                                {isContent ?
+                                                    <Base64Unzipper base64Zip={packageContent ?? ""} /> :
+                                                    <Button variant={"link"} onClick={() => window.open(packageContent ?? "", "_blank")}>
+                                                        View repository
+                                                    </Button>}
                                             </div>
-                                            <div className="flex-1 w-full">
-                                                <p className="text-sm text-gray-400">Package cost</p>
-                                                {cost !== null ? cost : <Skeleton className="w-[100px] h-7 " />}
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                            }
+                            {loading ? <Skeleton className="w-full h-10 col-span-4" /> :
+                                <div className="col-span-4">
+                                    <Card>
+                                        <CardContent className="p-4">
+                                            <div className="relative min-h-[200px] flex flex-col">
+                                                <div className="flex-1 w-full">
+                                                    <p className="text-sm text-gray-400">Package rating</p>
+                                                    {rating !== null ? rating : <Skeleton className="w-[100px] h-7 " />}
+                                                </div>
+                                                <div className="flex-1 w-full">
+                                                    <p className="text-sm text-gray-400">Package cost</p>
+                                                    {cost !== null ? cost : <Skeleton className="w-[100px] h-7 " />}
+                                                </div>
                                             </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                            }
                         </div>
                     </CardContent>
                 </Card>

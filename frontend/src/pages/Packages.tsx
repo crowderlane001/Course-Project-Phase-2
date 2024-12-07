@@ -40,7 +40,7 @@ const Packages: React.FC = () => {
 
       const headers = {
         "Content-Type": "application/json",
-        "X-Authorization": user?.token
+        "Authorization": user?.token
       }
 
       api.post("/packages", [{ Name: "*" }], headers)
