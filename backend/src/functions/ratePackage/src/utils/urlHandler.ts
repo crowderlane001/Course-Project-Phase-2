@@ -1,5 +1,6 @@
-import { fetchGithubUrlFromNpm } from '../api/npmApi';
+//This file contains utility functions for handling URLs.
 
+import { fetchGithubUrlFromNpm } from '../api/npmApi';
 
 export const extractDomainFromUrl = (url: string): string | null => {
     // unsure if we would receive a url without this

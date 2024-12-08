@@ -1,4 +1,4 @@
-/* Provides metrics for uploaded packages.
+/*  Default index file containing handler for post /package/[id]/rate endpoint. This endpoint returns the rating of a package based on the metrics computed.
 
 Schema:
 /package/{id}/rate:

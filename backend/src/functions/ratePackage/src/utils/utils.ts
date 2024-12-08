@@ -1,3 +1,5 @@
+// This file contains a variety of ultity functions.
+
 import { promises as fs } from 'fs';
 
 export const writeFile = async (data: any, filename: string) => {

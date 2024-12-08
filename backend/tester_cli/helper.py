@@ -1,3 +1,5 @@
+#This file contains assorted helper functions and classes that are used in the tester_cli module
+
 import json
 import os
 import subprocess as sp

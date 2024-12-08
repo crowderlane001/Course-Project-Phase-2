@@ -1,3 +1,5 @@
+//Default index file containing handler for resetRegistry endpoint. This function deletes all packages from the registry.
+
 import { DynamoDBClient, ScanCommand, DeleteItemCommand } from '@aws-sdk/client-dynamodb';
 import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';

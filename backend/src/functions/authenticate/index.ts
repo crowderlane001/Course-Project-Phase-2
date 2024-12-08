@@ -1,4 +1,4 @@
-//Default index file containing handler for authenticate endpoint
+//Default index file containing handler for authenticate endpoint. This authenticates the user and returns a JWT token.
 
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
