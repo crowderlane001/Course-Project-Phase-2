@@ -3,11 +3,13 @@ import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import * as unzipper from "unzipper";
+import * as jwt from 'jsonwebtoken';
 
 const s3Client = new S3Client({});
 const dynamoDb = new DynamoDBClient({});
 const TABLE_NAME = "PackageRegistry";
 const BUCKET_NAME = "storage-phase-2";
+const JWT_SECRET = '1b7e4f8a9c2d1e6m3k5p9q8r7t2y4x6zew';
 
 interface PackageItem {
   ID: string;
@@ -268,6 +270,30 @@ const calculateDependenciesSize = async (packageItem: PackageItem): Promise<numb
 };
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+
+  // const token = event.headers['X-Authorization']?.split(' ')[1];
+
+  // if (!token) {
+  //   return {
+  //     statusCode: 403,
+  //     body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+  //   };
+  // }
+
+  // try {
+  //   // Verify the JWT
+  //   const decoded = jwt.verify(token, JWT_SECRET);
+
+  //   console.log('Token is valid:', decoded);
+  // } catch (err) {
+  //   console.error('Token verification failed:', err);
+
+  //   return {
+  //     statusCode: 403,
+  //     body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+  //   };
+  // }
+
   try {
     console.log("[HANDLER] Event received:", JSON.stringify(event, null, 2));
     

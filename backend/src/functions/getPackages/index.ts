@@ -127,6 +127,7 @@ import {
   QueryCommandInput,
 } from '@aws-sdk/client-dynamodb';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import * as jwt from 'jsonwebtoken';
 
 // Schema Definitions
 const PackageName = z.string().min(1);
@@ -144,6 +145,7 @@ const FetchPackagesSchema = z.array(PackageQuerySchema);
 const OFFSET_SCHEMA = z.coerce.number().int().min(0).default(0);
 
 const TABLE_NAME = 'PackageRegistry';
+const JWT_SECRET = '1b7e4f8a9c2d1e6m3k5p9q8r7t2y4x6zew';
 
 // Initialize DynamoDB client
 const dynamoClient = new DynamoDBClient({});
@@ -198,6 +200,31 @@ async function fetchPackagesByNameAndVersion(
 
 // Lambda Handler
 export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+
+  // const token = event.headers['X-Authorization']?.split(' ')[1];
+
+  // if (!token) {
+  //   return {
+  //     statusCode: 403,
+  //     body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+  //   };
+  // }
+
+  // try {
+  //   // Verify the JWT
+  //   const decoded = jwt.verify(token, JWT_SECRET);
+
+  //   console.log('Token is valid:', decoded);
+  // } catch (err) {
+  //   console.error('Token verification failed:', err);
+
+  //   return {
+  //     statusCode: 403,
+  //     body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+  //   };
+  // }
+
+  
   console.log('Received event:', JSON.stringify(event));
   try {
     // Validate request body
