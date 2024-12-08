@@ -23,6 +23,7 @@ import { DialogClose } from "@radix-ui/react-dialog"
 import { useUserManager } from "@/hooks/use-usermanager"
 
 const FormSchema = z.object({
+    name: z.string(),
     file: z.instanceof(File).refine((file) => file.type === "application/zip", {
         message: "File must be a ZIP archive",
     }),
@@ -36,6 +37,7 @@ export function UploadFormZip() {
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
         defaultValues: {
+            name: "",
             file: undefined,
         },
     });
@@ -51,11 +53,12 @@ export function UploadFormZip() {
 
     async function onSubmit(data: z.infer<typeof FormSchema>) {
         setIsSubmitting(true);
-        const { file } = data;
+        const { file, name } = data;
         const base64File: string = await convertFileToBase64(file);
         const base64String = base64File.replace(/^data:application\/zip;base64,/, "");
 
         const formData: object = {
+            "Name": name,
             "Content": base64String,
             "debloat": false,
             "JSProgram": "",
@@ -88,11 +91,24 @@ export function UploadFormZip() {
             });
     }
 
-    useEffect(() => {}, [isSubmitting]);
+    useEffect(() => { }, [isSubmitting]);
 
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="w-2/3 space-y-6">
+                <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Name</FormLabel>
+                            <FormControl>
+                                <Input className="text-base" type="text" placeholder="Enter package name" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
                 <FormField
                     control={form.control}
                     name="file"

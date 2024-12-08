@@ -20,9 +20,10 @@ const Base64Unzipper: React.FC<Base64UnzipperProps> = ({ base64Zip }) => {
 
     const handleBase64Unzip = async () => {
         // Example Base64 string representing a ZIP file
-
+        console.log(isDone);
         try {
             // Step 1: Decode Base64 string to binary
+            console.log(base64Zip);
             const binaryString = atob(base64Zip);
             const binaryData = new Uint8Array(
                 [...binaryString].map((char) => char.charCodeAt(0))
@@ -40,10 +41,15 @@ const Base64Unzipper: React.FC<Base64UnzipperProps> = ({ base64Zip }) => {
             }
 
             setFiles(extractedFiles);
+            console.log(extractedFiles);
         } catch (error) {
+            console.error(error);
+            setIsDone(true);
         }
 
-        setIsDone(true);
+        setTimeout(() => {
+            setIsDone(true);
+        }, 2000);
     };
 
     useEffect(() => {
@@ -57,6 +63,8 @@ const Base64Unzipper: React.FC<Base64UnzipperProps> = ({ base64Zip }) => {
         return str.slice(0, num) + "...";
     };
 
+    useEffect(() => {}, [isDone, files]);
+
     return (
         <div>
             <TooltipProvider>
@@ -67,12 +75,13 @@ const Base64Unzipper: React.FC<Base64UnzipperProps> = ({ base64Zip }) => {
                 <span className="text-xs italic text-gray-400">Hover over each file to view full name</span>
                 <ScrollArea className="h-[300px] w-full rounded p-2">
                     <ul>
-                        {!isDone || files.length === 0 ? (
+                        {!isDone ? (
                             <div className="flex flex-col gap-5">
                                 <Skeleton className="w-[200px] h-7 " />
                                 <Skeleton className="w-[100px] h-7 " />
                             </div>
                         ) : (
+                            files.length === 0 ? <p>No files found</p> :
                             files.map((file, index) => (
                                 <li key={index} className="grid grid-cols-4 gap-4 items-center">
                                     <div className="flex items-center col-span-3">

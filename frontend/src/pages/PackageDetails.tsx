@@ -91,7 +91,7 @@ function PackageDetails({ isResult = false }: PackageDetailsProps) {
         }
     }, []);
 
-    // useEffect(() => { }, [loading]);
+    useEffect(() => { }, [loading]);
 
 
 

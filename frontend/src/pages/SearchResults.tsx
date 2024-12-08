@@ -24,8 +24,7 @@ import Spinner from "@/components/user-defined/spinner";
 type SearchResult = {
     id: string;
     title: string;
-    description: string;
-    score: number;
+    version: string;
 }
 
 const columns: ColumnDef<SearchResult>[] = [
@@ -34,12 +33,8 @@ const columns: ColumnDef<SearchResult>[] = [
         header: 'Title',
     },
     {
-        accessorKey: 'description',
-        header: 'Description',
-    },
-    {
-        accessorKey: 'score',
-        header: 'Score',
+        accessorKey: 'version',
+        header: 'Version',
     }
 ];
 
@@ -56,6 +51,8 @@ function ResultsTable({ columns, data, query }: ResultsTableProps) {
         columns,
         getCoreRowModel: getCoreRowModel(),
     });
+
+    console.log(data);
 
     return (
         <div className="rounded-md border">
@@ -106,7 +103,7 @@ function ResultsTable({ columns, data, query }: ResultsTableProps) {
 function SearchResults() {
     const { query } = useParams<{ query: string }>();
     const { user } = useUserManager();
-    // const regex = new RegExp(query || '', 'i');
+    const [results, setResults] = useState<SearchResult[]>([]);
     const [loading, setLoading] = useState(true);
     
     const loadResults = async () => {
@@ -125,7 +122,10 @@ function SearchResults() {
         console.log(user?.token)
 
         const response = await api.post("/package/byRegEx", data, headers);
-        console.log(response);
+        console.log(response);  
+        response.forEach((item: any) => {
+            setResults((results) => [...results, { id: item.ID, title: item.Name, version: item.Version }]);
+        });
         setLoading(false);
     }
 
@@ -133,13 +133,15 @@ function SearchResults() {
         loadResults();
     }, [query]);
 
-    useEffect(() => {}, [loading]);
+    useEffect(() => {
+        console.log(results);
+    }, [loading, results]);
 
     return (
         <div>
             <Page>
                 <h2 className="bold">Search Results for "{query}"</h2>
-                {loading ? <div className="w-full flex flex-1 flex-row justify-center"><Spinner /></div> :  <ResultsTable columns={columns} query={query} data={[]} />}
+                {loading ? <div className="w-full flex flex-1 flex-row justify-center"><Spinner /></div> :  <ResultsTable columns={columns} query={query} data={results} />}
             </Page>
         </div>
     );
