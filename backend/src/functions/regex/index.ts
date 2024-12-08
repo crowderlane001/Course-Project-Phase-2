@@ -127,6 +127,7 @@ function hasBacktrackingRisk(pattern: string): boolean {
 
 export const handler = async (event: APIGatewayEvent, context: Context) => {
     const token = event.headers['X-Authorization']?.split(' ')[1];
+    console.log('Token received!!!!!!!!!!!!!!!!!!!:', token);
 
     const corsHeaders = {
         "Access-Control-Allow-Origin": "*",
