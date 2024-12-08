@@ -16,16 +16,9 @@ Take in zip. check if package.json to get name, metadata
 take in url, use api to get metadata
 */
 // Schema Definitions
-const PackageName = z.string().min(1);
-const PackageID = z.string().min(1);
-
-const PackageMetadataSchema = z.object({
-  Name: PackageName,
-  Version: z.string().regex(/^\d+\.\d+\.\d+$/),
-  ID: PackageID,
-});
 
 const PackageDataSchema = z.object({
+  Name: z.string(),
   Content: z.string().optional(),
   URL: z.string().url().optional(),
   debloat: z.boolean().optional(),
@@ -457,7 +450,7 @@ export async function handler(
     
 
     const metadata = {
-      Name: packageInfo.name,
+      Name: data.data.Name,
       Version: packageInfo.version,
       ID: randomUUID()
       // ID: generatePackageId(packageInfo.name, packageInfo.version)

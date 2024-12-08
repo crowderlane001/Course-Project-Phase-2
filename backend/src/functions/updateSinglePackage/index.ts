@@ -392,14 +392,14 @@ export async function handler(
 
 
     //INVESIFY
-    // if (prevName != newPackageData.data.metadata.Name) {
-    //   return {
-    //     statusCode: 404,
-    //     body: JSON.stringify({
-    //       message: 'Package does not exist.'
-    //     })
-    //   };
-    // }
+    if (prevName != newPackageData.data.metadata.Name) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({
+          message: 'Package does not exist.'
+        })
+      };
+    }
 
     if (prevVersion == newVersion) {
       return {
