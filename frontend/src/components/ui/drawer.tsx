@@ -1,3 +1,5 @@
+//This file code contains code for drawers.
+
 import * as React from "react"
 import { Drawer as DrawerPrimitive } from "vaul"
 

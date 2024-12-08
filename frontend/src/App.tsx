@@ -1,3 +1,5 @@
+//App component that manages rendering and routing of the application.
+
 import {
   HashRouter as Router,
   Route,

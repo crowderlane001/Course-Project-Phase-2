@@ -1,3 +1,5 @@
+//This file contains code for uploading a ZIP file.
+
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"

@@ -1,3 +1,5 @@
+//This file contains utility functions for making API requests to various endpoints.
+
 import { apiGetRequest, apiPostRequest } from './apiUtils'
 import { ApiResponse, GraphQLResponse } from '../types';
 import { ContributorResponse } from '../types';
@@ -22,7 +24,7 @@ export const fetchContributorActivity = async (
     repo: string, 
     token: string
 ): Promise<ApiResponse<ContributorResponse[] | null>> => {
-    const url = `${GITHUB_BASE_URL}/tmp/${owner}/${repo}/stats/contributors`;
+    const url = `${GITHUB_BASE_URL}/repos/${owner}/${repo}/stats/contributors`;
     const response = await apiGetRequest<ContributorResponse[]>(url, token);
 
     if (response.error) {

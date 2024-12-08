@@ -1,3 +1,5 @@
+//This file contains all the imports for the ratePackage function.
+
 export * from "./calculations/busFactor";
 export * from "./calculations/correctness";
 export * from "./calculations/license";

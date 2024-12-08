@@ -1,3 +1,5 @@
+//This file contains utility functions for calculating the responsiveness metric.
+
 import { ContributorResponse, ClosedIssueNode, PullRequestNode, OpenIssueNode } from "../types";
 import { ApiResponse, GraphQLResponse } from '../types';
 
@@ -10,6 +12,7 @@ export const calcResponsivenessScore = (
 ): number => {
     if (isArchived) {
         // repo is no longer maintained
+        console.log("RM, Repository is archived");
         return 0.0;
     }
 
@@ -33,6 +36,8 @@ export const calcResponsivenessScore = (
         }
     }
 
+    console.log("RM", openIssueCount, closedIssueCount, openPRCount, closedPRCount);
+
     const totalRecentIssues = openIssueCount + closedIssueCount;
     const totalRecentPRs = openPRCount + closedPRCount;
 
@@ -43,11 +48,13 @@ export const calcResponsivenessScore = (
         ? closedPRCount / totalRecentPRs 
         : 0.0;
     
+    console.log("RM", issueCloseRatio, prCloseRatio);
     return 0.5 * issueCloseRatio + 0.5 * prCloseRatio
 };
 
 export function calcResponsiveness(repoData: ApiResponse<GraphQLResponse | null>): number {
     if(!repoData.data?.data.repository){
+        console.log("RM, No repository data found");
         return 0.0;
     }
 
@@ -58,23 +65,27 @@ export function calcResponsiveness(repoData: ApiResponse<GraphQLResponse | null>
     const oneMonthAgo = new Date();
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
+    if (!recentPullRequests?.nodes || !totalClosedIssues?.nodes || !totalOpenIssues?.nodes) {
+        console.log("RM, No recent pull requests, closed issues, or open issues found");
+        return 1.0;
+    }
+
     if(!recentPullRequests){
+        console.log("RM, No recent pull requests found");
         return 0.0;
     }
 
     if(!totalClosedIssues){
+        console.log("RM, No closed issues found");
         return 0.0;
     }
 
     if(!totalOpenIssues){
+        console.log("RM, No open issues found");
         return 1.0;
     }   
 
-    if (!recentPullRequests?.nodes || !totalClosedIssues?.nodes || !totalOpenIssues?.nodes) {
-        return 1.0;
-    }
-
     const responsiveness = calcResponsivenessScore(totalClosedIssues.nodes, totalOpenIssues.nodes, recentPullRequests.nodes, oneMonthAgo, isArchived ?? false);
-
+    console.log("RM", responsiveness, totalClosedIssues.nodes.length, totalOpenIssues.nodes.length, recentPullRequests.nodes.length);
     return responsiveness;
 }

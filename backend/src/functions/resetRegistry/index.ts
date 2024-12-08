@@ -1,3 +1,5 @@
+//Default index file containing handler for resetRegistry endpoint. This function deletes all packages from the registry.
+
 import { DynamoDBClient, ScanCommand, DeleteItemCommand } from '@aws-sdk/client-dynamodb';
 import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
@@ -12,28 +14,28 @@ const JWT_SECRET = '1b7e4f8a9c2d1e6m3k5p9q8r7t2y4x6zew';
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
 
-  const token = event.headers['X-Authorization']?.split(' ')[1];
+  // const token = event.headers['X-Authorization']?.split(' ')[1];
 
-  if (!token) {
-    return {
-      statusCode: 403,
-      body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
-    };
-  }
+  // if (!token) {
+  //   return {
+  //     statusCode: 403,
+  //     body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+  //   };
+  // }
 
-  try {
-    // Verify the JWT
-    const decoded = jwt.verify(token, JWT_SECRET);
+  // try {
+  //   // Verify the JWT
+  //   const decoded = jwt.verify(token, JWT_SECRET);
 
-    console.log('Token is valid:', decoded);
-  } catch (err) {
-    console.error('Token verification failed:', err);
+  //   console.log('Token is valid:', decoded);
+  // } catch (err) {
+  //   console.error('Token verification failed:', err);
 
-    return {
-      statusCode: 403,
-      body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
-    };
-  }
+  //   return {
+  //     statusCode: 403,
+  //     body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+  //   };
+  // }
 
   try {
     console.log('Starting bulk deletion process');

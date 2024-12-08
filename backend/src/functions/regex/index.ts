@@ -1,3 +1,5 @@
+//Default index file containing handler for /regex endpoint. This endpoint returns a list of packages based on the regex provided.
+
 // /package/byRegEx:
 //     post:
 //       requestBody:
@@ -126,59 +128,60 @@ function hasBacktrackingRisk(pattern: string): boolean {
 }
 
 export const handler = async (event: APIGatewayEvent, context: Context) => {
-    const token = event.headers['X-Authorization']?.split(' ')[1];
+    // const token = event.headers['X-Authorization']?.split(' ')[1];
+    // console.log('Token received!!!!!!!!!!!!!!!!!!!:', token);
 
-    if (!token) {
-      return {
-        statusCode: 403,
-        body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
-      };
-    }
-  
-    try {
-      // Verify the JWT
-      const decoded = jwt.verify(token, JWT_SECRET);
-  
-      console.log('Token is valid:', decoded);
-    } catch (err) {
-      console.error('Token verification failed:', err);
-  
-      return {
-        statusCode: 403,
-        body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
-      };
-    }
+    const corsHeaders = {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, X-Authorization",
+    };
+
+    // if (!token) {
+    //     return {
+    //         statusCode: 403,
+    //         headers: corsHeaders,
+    //         body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+    //     };
+    // }
+
+    // try {
+    //     const decoded = jwt.verify(token, JWT_SECRET);
+    //     console.log('Token is valid:', decoded);
+    // } catch (err) {
+    //     console.error('Token verification failed:', err);
+    //     return {
+    //         statusCode: 403,
+    //         headers: corsHeaders,
+    //         body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+    //     };
+    // }
 
     try {
-        // Extract the search pattern from the event body (looking for 'RegEx')
         const requestBody = event.body ? JSON.parse(event.body) : {};
         const pattern: string = requestBody.RegEx || event.queryStringParameters?.RegEx;
 
         if (!pattern) {
             return {
                 statusCode: 400,
+                headers: corsHeaders,
                 body: JSON.stringify({
-                    message: "There1 is missing field(s) in the PackageRegEx or it is formed improperly, or is invalid",
+                    message: "There is missing field(s) in the PackageRegEx or it is formed improperly, or is invalid",
                 }),
             };
         }
 
-        console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~REGEX~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
-        console.log(pattern);
-        console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~REGEX~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
-
-
         if (hasBacktrackingRisk(pattern)) {
             return {
                 statusCode: 400,
+                headers: corsHeaders,
                 body: JSON.stringify({
-                    message: "Ther2 is missing field(s) in the PackageRegEx or it is formed improperly, or is invalid",
+                    message: "There is missing field(s) in the PackageRegEx or it is formed improperly, or is invalid",
                 }),
             };
         }
 
         const regex = new RegExp(pattern, "i");
-
 
         const scanCommand = new ScanCommand({
             TableName: TABLE_NAME,
@@ -186,11 +189,11 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
 
         const scanResult = await documentClient.send(scanCommand);
 
-        // Check for items in the response
         if (!scanResult.Items || scanResult.Items.length === 0) {
             return {
                 statusCode: 404,
-                body: JSON.stringify([]), // Return an empty array if no packages are found
+                headers: corsHeaders,
+                body: JSON.stringify([]),
             };
         }
 
@@ -199,43 +202,38 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
             return regex.test(name);
         }).map((item) => {
             if (!item.Name || !item.Version || !item.ID) {
-                console.warn(
-                    `Skipping invalid item: ${JSON.stringify(item)}`
-                );
-                return null; // Exclude invalid items
+                console.warn(`Skipping invalid item: ${JSON.stringify(item)}`);
+                return null;
             }
             return {
-                Name: item.Name, // Expected to exist
-                Version: item.Version, // Expected to exist
-                ID: item.ID, // Expected to exist
+                Name: item.Name,
+                Version: item.Version,
+                ID: item.ID,
             };
-        }).filter((item) => item !== null); // Remove nulls
+        }).filter((item) => item !== null);
 
         if (filteredItems.length === 0) {
             return {
                 statusCode: 404,
+                headers: corsHeaders,
                 body: JSON.stringify({
                     message: "No packages matched the provided regex pattern.",
-                }), // Provide an explanatory message
+                }),
             };
         }
 
-        // Respond with the filtered items
         return {
             statusCode: 200,
-            headers: {
-                "Access-Control-Allow-Origin": "*", // Allow requests from your frontend
-                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS", // Allow HTTP methods
-                "Access-Control-Allow-Headers": "Content-Type, X-Authorization", // Allow headers
-              },
-            body: JSON.stringify(filteredItems) // Return filteredItems directly
+            headers: corsHeaders,
+            body: JSON.stringify(filteredItems),
         };
     } catch (error) {
         console.error("Error processing request:", error);
         return {
             statusCode: 500,
+            headers: corsHeaders,
             body: JSON.stringify({
-                message: "Internal server erroring."
+                message: "Internal server error.",
             }),
         };
     }

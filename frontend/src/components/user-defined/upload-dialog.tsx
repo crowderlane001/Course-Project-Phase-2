@@ -1,3 +1,5 @@
+//This file contains dialog for the upload form.
+
 import React from "react";
 import { DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { UploadFormUrl } from "./upload-form-url";

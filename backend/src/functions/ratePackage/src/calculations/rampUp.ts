@@ -1,3 +1,5 @@
+//This file contains utility functions for calculating the ramp-up metric.
+
 import { ApiResponse, GraphQLResponse } from '../types';
 import { getReadmeDetails } from "../api/githubApi";
 

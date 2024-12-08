@@ -1,3 +1,5 @@
+//This file contains the code for the top packages component.
+
 import React from 'react';
 
 interface Package {

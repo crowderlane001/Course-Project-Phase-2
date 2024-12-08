@@ -1,3 +1,5 @@
+//Package manager class which calls functions to get packages and set packages.
+
 import Package from '@/models/package';
 
 class PackageManager {

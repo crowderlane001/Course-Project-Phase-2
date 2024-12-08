@@ -1,3 +1,5 @@
+//This file contains code for accordian component to expand and collapse content.
+
 import * as React from "react"
 import * as AccordionPrimitive from "@radix-ui/react-accordion"
 import { cn } from "@/lib/utils"
