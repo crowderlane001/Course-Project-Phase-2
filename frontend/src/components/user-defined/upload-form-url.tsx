@@ -23,6 +23,7 @@ import { useUserManager } from '@/hooks/use-usermanager';
 const npmOrGithubUrlRegex = /^(https:\/\/(www\.)?(npmjs\.com|github\.com)\/.+)$/;
 
 const FormSchema = z.object({
+    name: z.string().nonempty(),
     url: z.string().url().refine((url) => npmOrGithubUrlRegex.test(url), {
         message: "URL must be a valid npm or GitHub URL",
     }),
@@ -37,14 +38,16 @@ export function UploadFormUrl() {
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
         defaultValues: {
+            name: "",
             url: "",
         },
     })
 
     function onSubmit(data: z.infer<typeof FormSchema>) {
         setIsSubmitting(true);
-        const { url } = data;
+        const { url, name } = data;
         const packageUpload = {
+            "Name": name,
             "URL": url,
             "debloat": false,
             "JSProgram": ""
@@ -82,6 +85,19 @@ export function UploadFormUrl() {
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="w-2/3 space-y-6">
+            <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Name</FormLabel>
+                            <FormControl>
+                                <Input className="text-base" type="text" placeholder="Enter package name" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
                 <FormField
                     control={form.control}
                     name="url"
