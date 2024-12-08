@@ -1,3 +1,5 @@
+//This file contains the landing page for the application.
+
 import { Package2 } from "lucide-react";
 import React from "react";
 import { Button } from "../ui/button";

@@ -1,12 +1,9 @@
+//This file contains utility functions for calculating the Bus Factor metric.
+
 import { ContributorResponse} from "../types";
 import { fetchContributorActivity } from "../api/githubApi";
 
-
 export const calcBusFactorScore = (contributorActivity: ContributorResponse[]): number => {
-    if (!contributorActivity) {
-        return 0.0;
-    }
-
     let totalCommits = 0;
     let totalContributors = 0;
     for (const contributor of contributorActivity) {
@@ -35,6 +32,7 @@ export const calcBusFactorScore = (contributorActivity: ContributorResponse[]): 
         return 1.0;
     }
 
+    console.log("returning bus factor", busFactor, averageBusFactor, 1.0 - Math.exp(-(busFactor ** 2) / (2 * averageBusFactor ** 2)));
     // scale bus factor values using sigmoid function
     return 1.0 - Math.exp(-(busFactor ** 2) / (2 * averageBusFactor ** 2));
 }

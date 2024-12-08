@@ -1,3 +1,5 @@
+//Default index file containing handler for /regex endpoint. This endpoint returns a list of packages based on the regex provided.
+
 // /package/byRegEx:
 //     post:
 //       requestBody:

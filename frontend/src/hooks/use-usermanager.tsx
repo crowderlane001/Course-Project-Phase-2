@@ -1,3 +1,5 @@
+//This file contains code for the user manager.
+
 import { useEffect, useState } from 'react';
 import { userManager } from '@/state/user-manager';
 

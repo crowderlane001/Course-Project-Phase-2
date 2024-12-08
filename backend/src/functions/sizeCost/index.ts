@@ -1,3 +1,5 @@
+//Default index file containing handler for /sizeCost endpoint. This endpoint returns the size of a package's dependencies based on the metrics computed.
+
 import { S3Client, HeadObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";

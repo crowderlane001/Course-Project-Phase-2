@@ -1,3 +1,5 @@
+//This file contains utility functions for calculating the correctness metric.
+
 import { ApiResponse, GraphQLResponse } from '../types';
 
 export const calcCorrectnessScore = (totalOpenIssuesCount: number, totalClosedIssuesCount: number): number => {

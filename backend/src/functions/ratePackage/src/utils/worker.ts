@@ -1,3 +1,5 @@
+//This file contains the worker function that creates workers and redirects the computation to the appropriate calculation function.
+
 const { parentPort } = require('worker_threads');
 const { calcBusFactor, calcCorrectness, calcLicense, calcPinnedDependencies, calcRampUp, calcReviewedCode, calcResponsiveness} = require('../imports');
 // import { GraphQLResponse } from './../types';

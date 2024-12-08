@@ -1,3 +1,5 @@
+//This file contains the base code to create skeletons.
+
 import { cn } from "@/lib/utils"
 
 function Skeleton({

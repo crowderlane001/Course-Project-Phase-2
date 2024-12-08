@@ -1,3 +1,5 @@
+//This file contains various types used in the ratePackage function.
+
 export interface ContributorResponse {
     total: number;
     author: {

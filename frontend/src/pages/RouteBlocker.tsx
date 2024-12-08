@@ -1,3 +1,5 @@
+// Blocks improper routes.
+
 import { Button } from "@/components/ui/button";
 import LoginButton from "@/components/user-defined/login-button";
 import {

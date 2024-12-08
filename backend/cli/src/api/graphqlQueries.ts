@@ -1,3 +1,5 @@
+//This file contains utility functions for making API requests by graphqL.
+
 export const getRepoDataQuery = (owner: string, repo: string) => `
 {
   repository(owner: "${owner}", name: "${repo}") {
@@ -25,6 +27,9 @@ export const getRepoDataQuery = (owner: string, repo: string) => `
         createdAt
         updatedAt
         closedAt
+        reviews(first: 1) {
+          totalCount
+        }
       }
     }
 

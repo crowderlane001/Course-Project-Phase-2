@@ -1,3 +1,5 @@
+//This file contains code for inputs component to display input fields.
+
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
