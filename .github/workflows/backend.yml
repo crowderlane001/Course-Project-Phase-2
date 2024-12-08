@@ -43,7 +43,7 @@ jobs:
             ["createPackage"]="packageRegistry-createPackage"
             ["getPackages"]="packageRegistry-getPackages"
             ["getSinglePackage"]="packageRegistry-getSinglePackage"
-            ["ratePackage"]="packageRegistry-ratePackage"
+            # ["ratePackage"]="packageRegistry-ratePackage"
             ["regex"]="packageRegistry-regexPackage"
             ["resetRegistry"]="packageRegistry-resetRegistry"
             ["sizeCost"]="packageRegistry-sizeCost"

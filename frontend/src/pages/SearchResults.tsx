@@ -119,6 +119,8 @@ function SearchResults() {
             "Content-Type": "application/json",
             "X-Authorization": user?.token
         }
+        console.log('USERRRRRRRRRRRRRRRRRRRRRR')
+        console.log(user?.token)
 
         const response = await api.post("/package/byRegEx", data, headers);
         console.log(response);

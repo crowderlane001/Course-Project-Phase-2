@@ -19,17 +19,19 @@ class API {
     }
 
     async post(path: string, data: any, header?: Header) {
-
+        const defaultHeaders = {
+            "Content-Type": "application/json",
+        };
+        const finalHeaders = { ...defaultHeaders, ...(header || {}) };
+    
+        console.log('Final headers:', finalHeaders); // Debugging
         const response = await fetch(`${this.baseURL}${path}`, {
             method: "POST",
-            headers: header != null ? header : {
-                "Content-Type": "application/json",
-            },
+            headers: finalHeaders,
             body: JSON.stringify(data),
         });
         return response.json();
     }
-
     async put(path: string, data: any, header?: Header) {
 
         const response = await fetch(`${this.baseURL}${path}`, {
