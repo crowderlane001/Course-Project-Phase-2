@@ -22,6 +22,13 @@ interface PackageJson {
   dependencies?: Record<string, string>;
 }
 
+interface CostResult {
+  [packageId: string]: {
+    standaloneCost?: number;
+    totalCost: number;
+  }
+}
+
 const normalizeVersion = (version: string): string => {
   return version.replace(/[^\d.]/g, '');
 };
@@ -70,7 +77,6 @@ const getPackageSize = async (s3Key: string): Promise<number> => {
       return 0;
     }
 
-    // More precise size calculation - ensure we don't lose small files
     const mbSize = response.ContentLength / (1024 * 1024);
     const roundedSize = Number((Math.max(mbSize, 0.001)).toFixed(3));
     console.log(`[SIZE] Calculated size for ${key}: ${roundedSize} MB (${response.ContentLength} bytes)`);
@@ -89,21 +95,6 @@ const getPackageSize = async (s3Key: string): Promise<number> => {
       }
     }
     return 0;
-  }
-};
-
-const logRegistryState = async () => {
-  try {
-    const scanCommand = new ScanCommand({ TableName: TABLE_NAME });
-    const result = await dynamoDb.send(scanCommand);
-    console.log("[REGISTRY] Available packages:", 
-      result.Items?.map(item => {
-        const pkg = unmarshall(item);
-        return `${pkg.Name}@${pkg.Version} (${pkg.ID})`;
-      })
-    );
-  } catch (error: unknown) {
-    console.error("[REGISTRY] Error scanning registry:", error);
   }
 };
 
@@ -220,80 +211,72 @@ const extractPackageJson = async (s3Key: string): Promise<PackageJson | null> =>
   }
 };
 
-const calculateDependenciesSize = async (packageItem: PackageItem): Promise<number> => {
+const calculateDependenciesSizeRecursive = async (
+  packageItem: PackageItem, 
+  visitedPackages = new Set<string>(),
+  costMap: CostResult = {}
+): Promise<CostResult> => {
   try {
-    await logRegistryState();
+    // Create unique key for cycle detection
+    const packageKey = `${packageItem.Name}@${packageItem.Version}`;
+    if (visitedPackages.has(packageKey)) {
+      console.log(`[CALC] Skipping circular dependency: ${packageKey}`);
+      return costMap;
+    }
+    visitedPackages.add(packageKey);
 
-    let totalSize = await getPackageSize(packageItem.s3Key);
-    console.log(`[CALC] Base package ${packageItem.Name}@${packageItem.Version} (${packageItem.ID}) size: ${totalSize} MB`);
+    // Calculate standalone size
+    const standaloneSize = await getPackageSize(packageItem.s3Key);
+    console.log(`[CALC] Base package ${packageKey} (${packageItem.ID}) size: ${standaloneSize} MB`);
     
+    // Initialize cost map entry
+    costMap[packageItem.ID] = {
+      standaloneCost: standaloneSize,
+      totalCost: standaloneSize
+    };
+
+    // Get and process dependencies
     const packageJson = await extractPackageJson(packageItem.s3Key);
     if (!packageJson?.dependencies) {
       console.log('[CALC] No dependencies found in package.json');
-      return totalSize;
+      return costMap;
     }
 
-    console.log("[CALC] Found dependencies:", packageJson.dependencies);
-    let foundDeps = 0;
-    let missingDeps = 0;
-    let depSizes = [];
+    console.log("[CALC] Processing dependencies for:", packageKey);
     
+    // Process each dependency recursively
     for (const [name, version] of Object.entries(packageJson.dependencies)) {
       const depKey = `${name}@${version}`;
       console.log(`\n[CALC] Processing dependency: ${depKey}`);
       
       const dep = await getPackageByNameAndVersion(name, version);
       if (dep) {
-        foundDeps++;
-        const depSize = await getPackageSize(dep.s3Key);
-        console.log(`[CALC] Found dependency ${name}@${dep.Version} with size ${depSize} MB`);
-        depSizes.push({ name, version: dep.Version, size: depSize });
-        totalSize += depSize;
+        // Recursively calculate costs for this dependency and its dependencies
+        const depCosts = await calculateDependenciesSizeRecursive(dep, visitedPackages, costMap);
+        
+        // Add dependency's total cost to current package's total
+        if (depCosts[dep.ID]) {
+          costMap[packageItem.ID].totalCost += depCosts[dep.ID].totalCost;
+          console.log(`[CALC] Added dependency ${depKey} cost (${depCosts[dep.ID].totalCost} MB) to ${packageKey}`);
+        }
       } else {
-        missingDeps++;
         console.log(`[CALC] Dependency not available in registry: ${depKey}`);
       }
     }
 
-    console.log('\n[CALC] Dependencies summary:');
-    console.log(`- Total dependencies found: ${foundDeps}`);
-    console.log(`- Missing dependencies: ${missingDeps}`);
-    console.log('- Dependency sizes:', depSizes);
-    console.log(`- Final total size: ${totalSize} MB`);
-    
-    // Ensure total size is never less than standalone
-    return Number((Math.max(totalSize, totalSize)).toFixed(3));
+    // Round final costs
+    costMap[packageItem.ID].totalCost = Number(costMap[packageItem.ID].totalCost.toFixed(3));
+    costMap[packageItem.ID].standaloneCost = Number(costMap[packageItem.ID].standaloneCost?.toFixed(3));
+
+    console.log(`[CALC] Final costs for ${packageKey}:`, costMap[packageItem.ID]);
+    return costMap;
   } catch (error: unknown) {
     console.error("[CALC] Error calculating dependencies size:", error);
-    return 0;
+    return costMap;
   }
 };
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-
-  // const token = event.headers['X-Authorization']?.split(' ')[1];
-
-  // if (!token) {
-  //   return {
-  //     statusCode: 403,
-  //     body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
-  //   };
-  // }
-
-  // try {
-  //   // Verify the JWT
-  //   const decoded = jwt.verify(token, JWT_SECRET);
-
-  //   console.log('Token is valid:', decoded);
-  // } catch (err) {
-  //   console.error('Token verification failed:', err);
-
-  //   return {
-  //     statusCode: 403,
-  //     body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
-  //   };
-  // }
-
   try {
     console.log("[HANDLER] Event received:", JSON.stringify(event, null, 2));
     
@@ -322,38 +305,30 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const standaloneSize = await getPackageSize(packageItem.s3Key);
     console.log("[HANDLER] Standalone size:", standaloneSize);
 
-    // Use dependency parameter to control response format
+    // Handle dependencies if requested
     if (includeDependencies) {
-      const totalSize = await calculateDependenciesSize(packageItem);
-      console.log("[HANDLER] Final sizes:", {
-        standalone: standaloneSize,
-        total: Math.max(totalSize, standaloneSize)
-      });
+      const costResults = await calculateDependenciesSizeRecursive(packageItem);
+      console.log("[HANDLER] Final costs:", costResults);
       
       return {
         statusCode: 200,
         headers: {
-          "Access-Control-Allow-Origin": "*", // Allow requests from your frontend
-          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS", // Allow HTTP methods
-          "Access-Control-Allow-Headers": "Content-Type, X-Authorization", // Allow headers
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, X-Authorization",
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          [packageId]: {
-            standaloneCost: standaloneSize,
-            totalCost: Math.max(totalSize, standaloneSize)
-          }
-        })
+        body: JSON.stringify(costResults)
       };
     }
 
-    // Without dependency parameter, just return totalCost
+    // Without dependency parameter, just return totalCost for requested package
     return {
       statusCode: 200,
       headers: {
-        "Access-Control-Allow-Origin": "*", // Allow requests from your frontend
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS", // Allow HTTP methods
-        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Authorization", // Allow headers
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Authorization",
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
