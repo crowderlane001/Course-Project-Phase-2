@@ -1,3 +1,5 @@
+//This ifile contains code for small assorted functions.
+
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 

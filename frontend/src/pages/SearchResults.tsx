@@ -1,3 +1,5 @@
+//Search results page.
+
 import { useNavigate, useParams } from "react-router-dom";
 import { ColumnDef } from "@tanstack/react-table";
 import {

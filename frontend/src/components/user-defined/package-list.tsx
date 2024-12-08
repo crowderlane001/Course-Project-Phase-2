@@ -1,3 +1,5 @@
+//This file contains the code for displaying a list of packages.
+
 import React, { useEffect, useState } from "react";
 import { Card, CardHeader } from "@/components/ui/card";
 import { usePackageManager } from "@/hooks/use-packagemanager";

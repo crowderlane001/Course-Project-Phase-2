@@ -1,3 +1,5 @@
+//This file contains code for progress bar display.
+
 import * as React from "react"
 import * as ProgressPrimitive from "@radix-ui/react-progress"
 

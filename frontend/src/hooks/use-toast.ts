@@ -1,3 +1,5 @@
+//This file contains code for a toast notification system.
+
 "use client"
 
 // Inspired by react-hot-toast library

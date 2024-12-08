@@ -1,3 +1,5 @@
+//This file contains code for a logo.
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { Package2 } from "lucide-react";
