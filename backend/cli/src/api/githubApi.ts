@@ -194,7 +194,7 @@ export const checkFolderExists = async (
     
     const headers: Record<string, string> = {};
     if (token) {
-      headers["Authorization"] = `token ${token}`;
+      headers["X-Authorization"] = `token ${token}`;
     }
   
     try {
