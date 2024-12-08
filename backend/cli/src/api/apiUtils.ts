@@ -14,7 +14,7 @@ export const apiGetRequest = async <T>(
         const config: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',
-                ...(token ? { 'X-Authorization': `Bearer ${token}` } : {}),
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
             },
         };
 
@@ -47,7 +47,7 @@ export const apiPostRequest = async <T>(
         const config: AxiosRequestConfig = {
             headers: {
                 'Content-Type': 'application/json',
-                ...(token ? { 'X-Authorization': `Bearer ${token}` } : {}),
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
             },
         };
 

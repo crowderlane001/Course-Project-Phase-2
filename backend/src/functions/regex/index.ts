@@ -129,11 +129,11 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
     const token = event.headers['X-Authorization']?.split(' ')[1];
     console.log('Token received!!!!!!!!!!!!!!!!!!!:', token);
 
-    // const corsHeaders = {
-    //     "Access-Control-Allow-Origin": "*",
-    //     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-    //     "Access-Control-Allow-Headers": "Content-Type, X-Authorization",
-    // };
+    const corsHeaders = {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, X-Authorization",
+    };
 
     // if (!token) {
     //     return {
