@@ -201,28 +201,28 @@ async function fetchPackagesByNameAndVersion(
 // Lambda Handler
 export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
 
-  const token = event.headers['X-Authorization']?.split(' ')[1];
+  // const token = event.headers['X-Authorization']?.split(' ')[1];
 
-  if (!token) {
-    return {
-      statusCode: 403,
-      body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
-    };
-  }
+  // if (!token) {
+  //   return {
+  //     statusCode: 403,
+  //     body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+  //   };
+  // }
 
-  try {
-    // Verify the JWT
-    const decoded = jwt.verify(token, JWT_SECRET);
+  // try {
+  //   // Verify the JWT
+  //   const decoded = jwt.verify(token, JWT_SECRET);
 
-    console.log('Token is valid:', decoded);
-  } catch (err) {
-    console.error('Token verification failed:', err);
+  //   console.log('Token is valid:', decoded);
+  // } catch (err) {
+  //   console.error('Token verification failed:', err);
 
-    return {
-      statusCode: 403,
-      body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
-    };
-  }
+  //   return {
+  //     statusCode: 403,
+  //     body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+  //   };
+  // }
 
   
   console.log('Received event:', JSON.stringify(event));

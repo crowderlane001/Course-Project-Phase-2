@@ -126,7 +126,7 @@ function hasBacktrackingRisk(pattern: string): boolean {
 }
 
 export const handler = async (event: APIGatewayEvent, context: Context) => {
-    const token = event.headers['X-Authorization']?.split(' ')[1];
+    // const token = event.headers['X-Authorization']?.split(' ')[1];
     console.log('Token received!!!!!!!!!!!!!!!!!!!:', token);
 
     const corsHeaders = {
@@ -135,25 +135,25 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
         "Access-Control-Allow-Headers": "Content-Type, X-Authorization",
     };
 
-    if (!token) {
-        return {
-            statusCode: 403,
-            headers: corsHeaders,
-            body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
-        };
-    }
+    // if (!token) {
+    //     return {
+    //         statusCode: 403,
+    //         headers: corsHeaders,
+    //         body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+    //     };
+    // }
 
-    try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        console.log('Token is valid:', decoded);
-    } catch (err) {
-        console.error('Token verification failed:', err);
-        return {
-            statusCode: 403,
-            headers: corsHeaders,
-            body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
-        };
-    }
+    // try {
+    //     const decoded = jwt.verify(token, JWT_SECRET);
+    //     console.log('Token is valid:', decoded);
+    // } catch (err) {
+    //     console.error('Token verification failed:', err);
+    //     return {
+    //         statusCode: 403,
+    //         headers: corsHeaders,
+    //         body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+    //     };
+    // }
 
     try {
         const requestBody = event.body ? JSON.parse(event.body) : {};
