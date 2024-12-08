@@ -276,7 +276,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   if (!token) {
     return {
       statusCode: 403,
-      body: JSON.stringify({ message: 'Authentication failed due to missing AuthenticationToken.' }),
+      body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
     };
   }
 
@@ -290,7 +290,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     return {
       statusCode: 403,
-      headers: defaultHeaders,
       body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
     };
   }
