@@ -1,3 +1,5 @@
+// This file contains utility functions for making API requests to external services. 
+
 import axios, { AxiosRequestConfig } from 'axios';
 import { ApiResponse } from '../types';
 import { writeFile } from '../utils/utils';

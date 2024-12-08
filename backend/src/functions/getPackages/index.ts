@@ -1,3 +1,5 @@
+//default index file containing handler for /packages endpoint. This endpoint returns a list of packages based on the query provided.
+
 // /packages:
 //     post:
 //       requestBody:

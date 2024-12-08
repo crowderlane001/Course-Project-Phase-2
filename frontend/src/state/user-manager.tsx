@@ -1,3 +1,5 @@
+//User manager class to manage user features.
+
 import User from "@/models/user-model";
 
 class UserManager {

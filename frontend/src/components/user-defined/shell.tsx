@@ -1,3 +1,5 @@
+//This file contains the base code for shells which are used to wrap pages.
+
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   Home,

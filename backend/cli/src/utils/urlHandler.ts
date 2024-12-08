@@ -1,5 +1,6 @@
-import { fetchGithubUrlFromNpm } from '../api/npmApi';
+//This file contains utility functions for handling URLs.
 
+import { fetchGithubUrlFromNpm } from '../api/npmApi';
 
 export const extractDomainFromUrl = (url: string): string | null => {
     // unsure if we would receive a url without this
@@ -45,10 +46,16 @@ export const extractGithubOwnerAndRepo = (repoURL: string): [string, string] | n
         return null;
     }
 
-    const [owner, repo] = parts;
+    let [owner, repo] = parts;
+
+    // Remove '.git' from the repo name if present
+    if (repo.endsWith('.git')) {
+        repo = repo.slice(0, -4); // Remove the last 4 characters (".git")
+    }
 
     return [owner, repo];
 };
+
 
 export async function getRepoDetails(token: string, inputURL: string): Promise<[string, string, string]> {
     // Remove 'git+' prefix if it exists

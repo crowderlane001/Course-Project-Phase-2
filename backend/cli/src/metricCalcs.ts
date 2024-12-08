@@ -1,3 +1,5 @@
+// This file contains the metric calculation functions for the ratePackage function.
+
 import { ApiResponse, GraphQLResponse } from './types';
 import { runWorker } from './indexSRC';
 import { Metrics, WorkerResult } from './types'
@@ -6,9 +8,23 @@ import * as fs from 'fs';
 import http from 'isomorphic-git/http/node';
 import * as path from 'path';
 
-export const cloner = async (repoUrl: string, localDir: string): Promise<null> => {
+const listAllFoldersInTmp = (dir: string): void => {
+    const items = fs.readdirSync(dir, { withFileTypes: true });
+    const directories = items.filter(item => item.isDirectory()).map(item => item.name);
+    console.log("Folders in /tmp:");
+    directories.forEach(folder => {
+        console.log(folder);
+    });
+};
+
+export const cloner = async (repoUrl: string, repo: string): Promise<null> => {
     const tmpDir = '/tmp';
-    const fullPath = path.join(tmpDir, localDir);  // Combine /tmp with the provided localDir
+    if (!fs.existsSync(tmpDir)) {
+        fs.mkdirSync(tmpDir);
+    }
+    listAllFoldersInTmp(tmpDir);
+
+    const fullPath = path.join(tmpDir, repo);  // Combine /tmp with the provided localDir
 
     try {
         // Check if the directory exists (do not delete or alter contents)
@@ -24,11 +40,12 @@ export const cloner = async (repoUrl: string, localDir: string): Promise<null> =
         await clone({
             fs,
             http,
-            dir: tmpDir,
+            dir: fullPath,
             url: repoUrl,
             singleBranch: true,
             depth: 1
         });
+        listAllFoldersInTmp(tmpDir);
         
         console.log(`Repository cloned into ${fullPath}`);
     } catch (err) {
@@ -86,8 +103,8 @@ export async function calculateMetrics(owner: string, repo: string, token: strin
         ResponsiveMaintainerLatency: responsivenessLatency,
         LicenseScore: license,
         LicenseScoreLatency: licenseLatency,
-        GoodPinningPractice: pinnedDepsLatency,
-        GoodPinningPracticeLatency: pinnedDeps,  // New metric
+        GoodPinningPractice: pinnedDeps,
+        GoodPinningPracticeLatency: pinnedDepsLatency,  // New metric
         PullRequest: reviewedCode,       // New metric
         PullRequestLatency: reviewedCodeLatency,
         NetScore: netScore,

@@ -1,3 +1,5 @@
+//This file contains the login button component.
+
 import React from 'react';
 import {
     Dialog,

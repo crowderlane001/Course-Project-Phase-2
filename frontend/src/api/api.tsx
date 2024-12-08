@@ -1,3 +1,5 @@
+//This file contains utility functions for making API requests to external services.
+
 export type Header = {}
 
 class API {

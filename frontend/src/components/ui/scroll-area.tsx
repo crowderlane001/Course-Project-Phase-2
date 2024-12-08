@@ -1,3 +1,5 @@
+//This file contains code that defines scrolling area.
+
 import * as React from "react"
 import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area"
 

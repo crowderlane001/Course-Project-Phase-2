@@ -1,6 +1,7 @@
+//This file contains utility functions for calculating the Bus Factor metric.
+
 import { ContributorResponse} from "../types";
 import { fetchContributorActivity } from "../api/githubApi";
-
 
 export const calcBusFactorScore = (contributorActivity: ContributorResponse[]): number => {
     let totalCommits = 0;

@@ -1,3 +1,5 @@
+//This file contains code for a list of features.
+
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 
 function FeaturesList() {
