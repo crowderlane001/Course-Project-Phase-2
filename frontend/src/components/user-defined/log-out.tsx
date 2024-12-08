@@ -54,9 +54,11 @@ function LogOutButton() {
                     <DropdownMenuItem onSelect={handleLogOut}>
                         Log Out
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="text-red-800" onClick={handleDeleteAllPackages}>
-                        <span><TrashIcon size={'1rem'} /></span> Delete all packages
-                    </DropdownMenuItem>
+                    {user?.isAdmin &&
+                        <DropdownMenuItem className="text-red-800" onClick={handleDeleteAllPackages}>
+                            <span><TrashIcon size={'1rem'} /></span> Delete all packages
+                        </DropdownMenuItem>
+                    }
                 </DropdownMenuGroup>
             </DropdownMenuContent>
         </DropdownMenu>
