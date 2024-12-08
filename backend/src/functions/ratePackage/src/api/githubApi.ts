@@ -1,3 +1,5 @@
+//This file contains utility functions for making API requests to various endpoints.
+
 import { apiGetRequest, apiPostRequest } from './apiUtils'
 import { ApiResponse, GraphQLResponse } from '../types';
 import { ContributorResponse } from '../types';

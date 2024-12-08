@@ -1,3 +1,5 @@
+//This file contains utility functions for calculating the pinned dependencies metric.
+
 import * as fs from 'fs';
 import * as path from 'path';
 

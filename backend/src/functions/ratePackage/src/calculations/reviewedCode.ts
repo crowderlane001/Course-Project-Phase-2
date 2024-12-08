@@ -1,3 +1,5 @@
+//This file contains utility functions for calculating the reviewed code metric.
+
 import { ApiResponse, GraphQLResponse } from '../types';
 
 export async function calcReviewedCode (repoData: ApiResponse<GraphQLResponse | null>): Promise<number> {

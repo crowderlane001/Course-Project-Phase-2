@@ -1,3 +1,5 @@
+//This file contains code for cards component to display content in card format.
+
 import * as React from "react"
 
 import { cn } from "@/lib/utils"

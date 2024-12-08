@@ -1,3 +1,5 @@
+//This file contains the base code to create separators.
+
 import * as React from "react"
 import * as SeparatorPrimitive from "@radix-ui/react-separator"
 

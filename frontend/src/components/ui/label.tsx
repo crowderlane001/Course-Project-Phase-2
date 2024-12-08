@@ -1,3 +1,5 @@
+//This file contains code for label component to display text.
+
 "use client"
 
 import * as React from "react"

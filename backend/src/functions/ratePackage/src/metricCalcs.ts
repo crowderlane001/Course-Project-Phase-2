@@ -1,3 +1,5 @@
+// This file contains the metric calculation functions for the ratePackage function.
+
 import { ApiResponse, GraphQLResponse } from './types';
 import { runWorker } from './indexSRC';
 import { Metrics, WorkerResult } from './types'

@@ -1,3 +1,5 @@
+//Default index file containing handler for /package/[id]/update endpoint. This endpoint updates the package with the new version.
+
 import { boolean, z } from 'zod';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { DynamoDBClient, QueryCommand, PutItemCommand, GetItemCommand, AttributeValue } from '@aws-sdk/client-dynamodb';

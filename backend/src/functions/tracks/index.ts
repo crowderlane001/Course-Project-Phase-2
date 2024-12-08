@@ -1,3 +1,5 @@
+// Default index file containing handler for tracks endpoint. This file just retrieves the planned tracks for the project.
+
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
   
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {

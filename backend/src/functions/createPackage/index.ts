@@ -1,4 +1,4 @@
-//Default index file containing handler for createpackage endpoint
+//Default index file containing handler for post /package endpoint. This creates a new package in the registry.
 
 import { z } from 'zod';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';

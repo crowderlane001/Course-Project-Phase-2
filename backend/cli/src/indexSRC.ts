@@ -1,9 +1,4 @@
-/*
-    This file is an example logical flow from a URL to
-    fetching and parsing repo data and calculating some metrics
-*/
-
-//no writing to log files as lambda is read-only
+//This file contains the main function for the ratePackage function.
 
 import 'dotenv/config';
 import { fetchRepoData } from "./api/githubApi";
