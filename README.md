@@ -1,50 +1,97 @@
-# React + TypeScript + Vite
+Project README
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Overview
 
-Currently, two official plugins are available:
+This project implements a RESTful API adhering to the OpenAPI Specification. It provides endpoints for managing, rating, uploading, downloading, and searching for packages. Designed for extensibility and security, the API includes:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Package ingestion from npm.
 
-## Expanding the ESLint configuration
+Features like version pinning and package rating.
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+ADA-compliant web interface.
 
-- Configure the top-level `parserOptions` property like this:
+Deployment and CI/CD integrations with AWS and GitHub Actions.
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+Security case analysis using ThreatModeler.
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+Features
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+Upload & Update Packages: Allows users to add new packages or update existing ones.
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+Search & Directory: Provides search capabilities and a package directory.
+
+Rate & Download: Enables rating and downloading packages.
+
+Version Pinning: Ensures version compatibility and stability.
+
+Requirements
+
+TypeScript
+
+AWS SDK
+
+GitHub Actions for CI/CD
+
+npm (for package ingestion)
+
+Installation
+
+Clone the repository:
+
+git clone https://github.com/yourusername/yourrepository.git
+
+Navigate to the project directory:
+
+cd yourrepository
+
+Set up environment variables:
+
+export GITHUB_TOKEN="insert_here"
+export LOG_FILE="/tmp/checker.log"
+export LOG_LEVEL=2
+
+Usage
+
+Deploy the application via GitHub Actions.
+
+Access the API at:
+
+https://med4k766h1.execute-api.us-east-1.amazonaws.com/prod
+
+Access the Web UI at:
+
+https://ece-461-team-9.github.io
+
+Deployment
+
+Ensure GitHub Actions is configured for deployment.
+
+Push changes to the main branch to trigger a deployment pipeline.
+
+Monitor the deployment via AWS Management Console.
+
+Individual Deployment
+
+Run zipper.sh in desired folder.
+
+Upload new zip folder to aws lambda function.
+
+Development
+
+Run Tests:
+
+npm test
+
+Start Local Development:
+
+npm run dev
+
+Contributing
+
+Fork the repository.
+
+Create a feature branch.
+
+Submit a pull request.
+
+For additional details, consult the OpenAPI specification file (spec.yaml).
