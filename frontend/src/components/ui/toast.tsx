@@ -1,3 +1,5 @@
+//This file contains code to create toasts, small notifications that appear on the screen.
+
 import * as React from "react"
 import * as ToastPrimitives from "@radix-ui/react-toast"
 import { cva, type VariantProps } from "class-variance-authority"

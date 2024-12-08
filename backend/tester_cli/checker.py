@@ -1,3 +1,5 @@
+# This contains the main logic for the checker script.
+
 import json
 import os
 import re

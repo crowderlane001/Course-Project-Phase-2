@@ -1,3 +1,5 @@
+//Tihs file contains the log out button component
+
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuGroup } from "@/components/ui/dropdown-menu";
 import { useUserManager } from "@/hooks/use-usermanager";
 import { Button } from "@/components/ui/button";

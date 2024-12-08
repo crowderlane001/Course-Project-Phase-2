@@ -1,3 +1,5 @@
+//This file contains utility functions for calculating the responsiveness metric.
+
 import { ContributorResponse, ClosedIssueNode, PullRequestNode, OpenIssueNode } from "../types";
 import { ApiResponse, GraphQLResponse } from '../types';
 

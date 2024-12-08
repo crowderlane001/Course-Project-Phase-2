@@ -1,11 +1,11 @@
-//Default index file containing handler for createpackage endpoint
+//Default index file containing handler for post /package endpoint. This creates a new package in the registry.
 
 import { z } from 'zod';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { DynamoDBClient, PutItemCommand, GetItemCommand, AttributeValue } from '@aws-sdk/client-dynamodb';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { randomUUID } from 'crypto';
-
+import * as jwt from 'jsonwebtoken';
 import { Buffer } from 'buffer';
 const unzipper = require('unzipper');
 
@@ -16,16 +16,9 @@ Take in zip. check if package.json to get name, metadata
 take in url, use api to get metadata
 */
 // Schema Definitions
-const PackageName = z.string().min(1);
-const PackageID = z.string().min(1);
-
-const PackageMetadataSchema = z.object({
-  Name: PackageName,
-  Version: z.string().regex(/^\d+\.\d+\.\d+$/),
-  ID: PackageID,
-});
 
 const PackageDataSchema = z.object({
+  Name: z.string(),
   Content: z.string().optional(),
   URL: z.string().url().optional(),
   debloat: z.boolean().optional(),
@@ -43,6 +36,7 @@ const PackageDataSchema = z.object({
 
 const BUCKET_NAME = "storage-phase-2";
 const TABLE_NAME = "PackageRegistry";
+const JWT_SECRET = '1b7e4f8a9c2d1e6m3k5p9q8r7t2y4x6zew';
 
 // Initialize AWS clients
 const s3Client = new S3Client({});
@@ -352,6 +346,31 @@ async function storePackageMetadata(
 export async function handler(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
+
+  // const token = event.headers['X-Authorization']?.split(' ')[1];
+
+  // if (!token) {
+  //   return {
+  //     statusCode: 403,
+  //     body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+  //   };
+  // }
+
+  // try {
+  //   // Verify the JWT
+  //   const decoded = jwt.verify(token, JWT_SECRET);
+
+  //   console.log('Token is valid:', decoded);
+  // } catch (err) {
+  //   console.error('Token verification failed:', err);
+
+  //   return {
+  //     statusCode: 403,
+  //     body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+  //   };
+  // }
+
+  
   try {
     if (!event.body) {
       return {
@@ -431,7 +450,7 @@ export async function handler(
     
 
     const metadata = {
-      Name: packageInfo.name,
+      Name: data.data.Name,
       Version: packageInfo.version,
       ID: randomUUID()
       // ID: generatePackageId(packageInfo.name, packageInfo.version)

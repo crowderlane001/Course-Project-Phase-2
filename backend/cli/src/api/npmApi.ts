@@ -1,3 +1,5 @@
+//This file contains npm API utility functions for making API requests to the NPM registry.
+
 import { ApiResponse, NpmApiResponse } from '../types';
 import { apiGetRequest } from './apiUtils';
 

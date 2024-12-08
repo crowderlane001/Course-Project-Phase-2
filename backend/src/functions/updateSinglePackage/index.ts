@@ -1,3 +1,5 @@
+//Default index file containing handler for /package/[id]/update endpoint. This endpoint updates the package with the new version.
+
 import { boolean, z } from 'zod';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { DynamoDBClient, QueryCommand, PutItemCommand, GetItemCommand, AttributeValue } from '@aws-sdk/client-dynamodb';
@@ -296,28 +298,28 @@ export async function handler(
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> {
 
-  const token = event.headers['X-Authorization']?.split(' ')[1];
+  // const token = event.headers['X-Authorization']?.split(' ')[1];
 
-  if (!token) {
-    return {
-      statusCode: 403,
-      body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
-    };
-  }
+  // if (!token) {
+  //   return {
+  //     statusCode: 403,
+  //     body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+  //   };
+  // }
 
-  try {
-    // Verify the JWT
-    const decoded = jwt.verify(token, JWT_SECRET);
+  // try {
+  //   // Verify the JWT
+  //   const decoded = jwt.verify(token, JWT_SECRET);
 
-    console.log('Token is valid:', decoded);
-  } catch (err) {
-    console.error('Token verification failed:', err);
+  //   console.log('Token is valid:', decoded);
+  // } catch (err) {
+  //   console.error('Token verification failed:', err);
 
-    return {
-      statusCode: 403,
-      body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
-    };
-  }
+  //   return {
+  //     statusCode: 403,
+  //     body: JSON.stringify({ message: 'Authentication failed due to invalid or missing AuthenticationToken.' }),
+  //   };
+  // }
 
 
   try {
@@ -390,14 +392,14 @@ export async function handler(
 
 
     //INVESIFY
-    // if (prevName != newPackageData.data.metadata.Name) {
-    //   return {
-    //     statusCode: 404,
-    //     body: JSON.stringify({
-    //       message: 'Package does not exist.'
-    //     })
-    //   };
-    // }
+    if (prevName != newPackageData.data.metadata.Name) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({
+          message: 'Package does not exist.'
+        })
+      };
+    }
 
     if (prevVersion == newVersion) {
       return {

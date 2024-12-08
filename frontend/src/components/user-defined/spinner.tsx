@@ -1,3 +1,5 @@
+//This file contains code for a spinner.
+
 import '@/animations.css';
 
 function Spinner() {

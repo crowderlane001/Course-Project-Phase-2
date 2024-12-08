@@ -1,0 +1,57 @@
+12/08/24 07:45:44 PM : INFO : Testing Directory: /app
+12/08/24 07:45:44 PM : Test Start : Running Tests for: ECE461: Autograder Phase 2
+12/08/24 07:45:44 PM : Test Start : Running Tests for: Setup and Reset Test Group
+12/08/24 07:45:45 PM : Test Success : > System Tracks Test passed!
+12/08/24 07:45:46 PM : Test Success : > Access Control Track is present!
+12/08/24 07:45:50 PM : Test Success : > Login Successful!
+12/08/24 07:45:53 PM : Test Success : > System Reset Test passed!
+12/08/24 07:45:55 PM : Test Success : > No Packages present after reset!
+12/08/24 07:45:55 PM : Test Result : Total score: 5 / 5 
+
+12/08/24 07:45:55 PM : Test Start : Running Tests for: Upload Packages Test Group
+12/08/24 07:45:59 PM : Test Success : > Content package 1 upload passed!
+12/08/24 07:45:59 PM : Test Success : > Single Package Query Test passed!
+12/08/24 07:46:00 PM : Test Success : > Content package 2 upload passed!
+12/08/24 07:46:01 PM : Test Success : > Content package 3 upload passed!
+12/08/24 07:46:02 PM : Test Success : > Ingest package 1 upload passed!
+12/08/24 07:46:04 PM : Test Success : > Ingest package 2 upload passed!
+12/08/24 07:46:06 PM : Test Success : > Ingest package 3 upload passed!
+12/08/24 07:46:07 PM : Test Success : > Ingest package 4 upload passed!
+12/08/24 07:46:08 PM : Test Success : > All Package Query Test passed!
+12/08/24 07:46:08 PM : Test Result : Total score: 9 / 9 
+
+12/08/24 07:46:08 PM : Test Start : Running Tests for: Regex Tests Group
+12/08/24 07:46:10 PM : Test Success : > Exact Match Name Regex Test passed!
+12/08/24 07:46:11 PM : Test Success : > Extra Chars Name Regex Test passed!
+12/08/24 07:46:12 PM : Test Success : > Random String Regex Test passed!
+12/08/24 07:46:12 PM : Test Result : Total score: 3 / 3 
+
+12/08/24 07:46:12 PM : Test Start : Running Tests for: Package Read Test Group
+12/08/24 07:46:13 PM : Test Success : > Get Package By Name Test 0 passed!
+12/08/24 07:46:14 PM : Test Success : > Get Package By Name Test 1 passed!
+12/08/24 07:46:14 PM : Test Success : > Get Package By Name Test 2 passed!
+12/08/24 07:46:15 PM : Test Success : > Get Package By Name Test 3 passed!
+12/08/24 07:46:16 PM : Test Success : > Get Package By Name Test 4 passed!
+12/08/24 07:46:16 PM : Test Success : > Get Package By Name Test 5 passed!
+12/08/24 07:46:17 PM : Test Success : > Get Package By Name Test 6 passed!
+12/08/24 07:46:20 PM : Test Success : > Get Package By ID Test 0 passed!
+12/08/24 07:46:21 PM : Test Success : > Get Package By ID Test 1 passed!
+12/08/24 07:46:21 PM : Test Success : > Get Package By ID Test 2 passed!
+12/08/24 07:46:22 PM : Test Success : > Get Package By ID Test 3 passed!
+12/08/24 07:46:23 PM : Test Success : > Get Package By ID Test 4 passed!
+12/08/24 07:46:24 PM : Test Success : > Get Package By ID Test 5 passed!
+12/08/24 07:46:25 PM : Test Success : > Get Package By ID Test 6 passed!
+12/08/24 07:46:26 PM : Test Success : > Invalid Package Read Test passed!
+12/08/24 07:46:26 PM : Test Result : Total score: 15 / 15 
+
+12/08/24 07:46:26 PM : Test Start : Running Tests for: Update Package Test Group
+12/08/24 07:46:36 PM : Test Result : Total score: 9 / 9 (9 hidden)
+
+12/08/24 07:46:36 PM : Test Start : Running Tests for: Rate packages Test Group
+12/08/24 07:47:57 PM : Test Result : Total score: 19 / 22 (8 hidden)
+
+12/08/24 07:47:57 PM : Test Start : Running Tests for: Package Cost Test Group
+12/08/24 07:48:00 PM : Test Result : Total score: 2 / 3 (3 hidden)
+
+12/08/24 07:48:00 PM : Test Result : Total score: 62 / 66 
+
